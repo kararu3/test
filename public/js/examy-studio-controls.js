@@ -58,9 +58,10 @@ function formatBlock(action){
  if(action==='afterLess')block.style.marginBlockEnd=px(parseFloat(cs.marginBlockEnd)-4)+'px';
  if(action==='removeSpace'){block.style.marginBlockStart='0';block.style.marginBlockEnd='0'}
  if(action==='deleteLine'){
-  const s=getSelection();if(s&&s.rangeCount&&!s.isCollapsed){s.deleteFromDocument()}else{
-   const range=document.createRange();range.selectNodeContents(block);range.deleteContents();
-  }
+  const s=getSelection();
+  if(s&&s.rangeCount&&!s.isCollapsed){s.deleteFromDocument()}
+  else if(block.matches('p,li,td,th') && block!==selectedEditable()){block.remove()}
+  else {window.UIEffects?.showToast('حدد نص السطر الذي تريد حذفه أولاً لتجنب حذف محتوى السؤال بالكامل','warning');return}
  }
  refreshSheet(block.closest('.a4-sheet'));
 }
