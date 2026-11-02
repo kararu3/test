@@ -1,0 +1,24 @@
+/* Examy PRO — final visual refinement */
+:root{--ex-brand:#5367e8;--ex-brand-2:#16a6a0;--ex-brand-soft:color-mix(in srgb,var(--ex-brand) 12%,var(--card-surface));--ex-brand-gradient:linear-gradient(120deg,var(--ex-brand),var(--ex-brand-2));}
+html,body{margin:0!important;border:0!important;padding-top:0!important;scrollbar-gutter:stable}
+body{background:var(--bg-screen)!important}
+.custom-titlebar{top:0!important;left:0!important;right:0!important;height:var(--titlebar-h,34px)!important;margin:0!important;border-top:0!important;outline:0!important;box-shadow:0 3px 14px rgba(0,0,0,.16)!important}
+#appTitlebar:before,#appTitlebar:after{content:none!important}
+html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{width:9px!important;height:9px!important;display:block!important}
+html::-webkit-scrollbar-track,body::-webkit-scrollbar-track,*::-webkit-scrollbar-track{background:var(--card-surface-subtle,#e9eef7)!important;border-radius:12px!important}
+html::-webkit-scrollbar-thumb,body::-webkit-scrollbar-thumb,*::-webkit-scrollbar-thumb{background:linear-gradient(180deg,var(--ex-brand),var(--ex-brand-2))!important;border:2px solid var(--card-surface-subtle,#e9eef7)!important;border-radius:12px!important;min-height:35px!important}
+html::-webkit-scrollbar-thumb:hover,body::-webkit-scrollbar-thumb:hover,*::-webkit-scrollbar-thumb:hover{filter:brightness(1.12)!important}
+*{scrollbar-width:thin!important;scrollbar-color:var(--ex-brand) var(--card-surface-subtle)!important}
+button,.tool-btn,.b-btn,.r-tab-btn,.s-tab-btn{transition:background .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease,transform .18s ease!important}
+button:not(.r-tab-btn):not(.s-tab-btn):not(.close-x):not(.window-control){border-color:color-mix(in srgb,var(--ex-brand) 28%,var(--card-border))!important}
+.tool-btn{background:linear-gradient(135deg,var(--ex-brand),color-mix(in srgb,var(--ex-brand) 65%,var(--ex-brand-2)))!important;color:#fff!important;box-shadow:0 2px 7px color-mix(in srgb,var(--ex-brand) 18%,transparent)!important}
+.tool-btn:hover,.b-btn:hover{filter:brightness(1.08)!important;transform:translateY(-1px)!important}
+#mainToolbar .r-tab-btn.active{background:var(--ex-brand-gradient)!important;color:#fff!important}
+#settingsModal .examy-palette-card{padding:14px;border:1px solid var(--card-border);border-radius:12px;background:var(--card-surface-elevated);margin:12px 0}
+#settingsModal .examy-palette-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--text-primary);font-weight:900}
+#settingsModal .examy-palette-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+#settingsModal #examyAccentPicker{width:54px!important;height:38px!important;padding:3px!important;cursor:pointer}
+#settingsModal #examyAccentPreset{min-width:170px;padding:9px;border-radius:8px;background:var(--card-surface)!important;color:var(--text-primary)!important;border:1px solid var(--card-border)!important}
+#settingsModal .examy-palette-preview{height:16px;border-radius:20px;margin-top:12px;background:var(--ex-brand-gradient);box-shadow:0 2px 8px #0002}
+#settingsModal .examy-palette-hint{font-size:11px;color:var(--text-muted);margin-top:8px}
+@media(max-width:720px){html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{width:6px!important;height:6px!important}}
