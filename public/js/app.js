@@ -56,6 +56,19 @@ window.addEventListener('DOMContentLoaded', async () => {
         const hwidElem = document.getElementById("hwidDisplay");
         if (hwidElem) hwidElem.textContent = hwid;
 
+        // فحص حساب المستخدم أولاً عبر نظام المشتركين الموجود على خادم الإدارة.
+        // عند تفعيل Remember Me تُستعاد بياناته المشفرة ثم يعاد التحقق منها سحابياً.
+        await updateLoadingProgress(34, "جاري التحقق من حساب المستخدم...", 90);
+        let isUserAuthenticated = false;
+        try {
+            if (window.ExamyAuth && typeof window.ExamyAuth.restore === 'function') {
+                isUserAuthenticated = await window.ExamyAuth.restore(hwid);
+            }
+        } catch (authStartupError) {
+            console.warn("تعذر استعادة تسجيل دخول المستخدم:", authStartupError);
+        }
+        window.examyUserAuthenticated = isUserAuthenticated;
+
         await updateLoadingProgress(45, "التحقق من حالة ترخيص النظام...", 100);
         
         let localLic = null;
@@ -202,9 +215,15 @@ window.addEventListener('DOMContentLoaded', async () => {
                 splashScreen.classList.remove("active");
                 splashScreen.style.display = "none";
 
-                if (isLicenseValid) {
+                window.examyLicenseValid = isLicenseValid;
+                if (!isUserAuthenticated) {
+                    // لا نعرض نافذة الترخيص قبل التحقق من حساب المشترك.
                     if (licenseModal) licenseModal.classList.remove("active");
-                    
+                    if (languageModal) languageModal.classList.remove("active");
+                    window.ExamyAuth?.show();
+                } else if (isLicenseValid) {
+                    if (licenseModal) licenseModal.classList.remove("active");
+
                     // لا تظهر نافذة اللغة إذا كان المستخدم قد اختار لغته مسبقاً
                     if (!localStorage.getItem('exambuilder_lang') && languageModal) {
                         languageModal.classList.add("active");
@@ -1531,8 +1550,18 @@ async function handleActivateBtn() {
             } catch (localErr) {}
 
             setTimeout(() => {
-                document.getElementById("licenseModal").classList.remove("active");
-                document.getElementById("languageModal").classList.add("active");
+                document.getElementById("licenseModal")?.classList.remove("active");
+                window.examyLicenseValid = true;
+                if (window.examyUserAuthenticated) {
+                    if (!localStorage.getItem('exambuilder_lang')) {
+                        document.getElementById("languageModal")?.classList.add("active");
+                    } else {
+                        document.getElementById("languageModal")?.classList.remove("active");
+                    }
+                } else {
+                    document.getElementById("languageModal")?.classList.remove("active");
+                    window.ExamyAuth?.show();
+                }
             }, 700);
 
         } else {
