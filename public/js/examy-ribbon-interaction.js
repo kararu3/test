@@ -37,7 +37,7 @@
 
   function collapsePanel() {
     const toolbar = $('#mainToolbar');
-    if (!toolbar || pinned || toolbar.contains(document.activeElement)) return;
+    if (!toolbar || pinned) return;
     toolbar.classList.add('ribbon-collapsed');
     toolbar.classList.remove('ribbon-panel-open');
   }
@@ -63,7 +63,7 @@
     pin.innerHTML = pinned ? '<span class="pin-symbol">📌</span><span>مثبّت</span>' : '<span class="pin-symbol">📍</span><span>تثبيت</span>';
     try { localStorage.setItem(KEY, pinned ? '1' : '0'); } catch (_) {}
     clearTimeout(idleTimer);
-    if (!pinned) resetIdle();
+    if (!pinned) {\n      showPanel();\n      idleTimer = setTimeout(collapsePanel, IDLE_MS);\n    }
   }
 
   function init() {
