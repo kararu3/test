@@ -1487,16 +1487,16 @@ async function handleActivateBtn() {
     const key = keyInput.value.trim().toUpperCase();
     keyInput.value = key;
 
-    if (!/^EXAM-[A-Z0-9]{4}(?:-[A-Z0-9]{4}){3}$/.test(key)) {
-        feedback.style.color = "#ef4444";
-        feedback.textContent = "صيغة المفتاح غير صحيحة. مثال: EXAM-D9P4-2B9A-OU3I-T8JK";
-        return;
-    }
-
     if (!key) {
         if (typeof SoundFX !== 'undefined') SoundFX.trash();
         feedback.style.color = "#ef4444";
         feedback.textContent = "يرجى كتابة أو لصق مفتاح التفعيل أولاً";
+        return;
+    }
+
+    if (!/^EXAM-[A-Z0-9]{4}(?:-[A-Z0-9]{4}){3}$/.test(key)) {
+        feedback.style.color = "#ef4444";
+        feedback.textContent = "صيغة المفتاح غير صحيحة. مثال: EXAM-D9P4-2B9A-OU3I-T8JK";
         return;
     }
 
