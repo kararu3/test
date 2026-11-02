@@ -3,7 +3,9 @@ const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
 
+// Keep writable JSON data outside app.asar / the installed application directory.
 try {
+    process.env.EXAMY_DATA_DIR = process.env.EXAMY_DATA_DIR || path.join(app.getPath('userData'), 'database');
     require('./server.js');
 } catch (err) {
     console.log("السيرفر قيد العمل مسبقاً:", err.message);
@@ -166,11 +168,13 @@ ipcMain.handle('print-sheet-direct', async (event, { printerName = '', pageSize 
             printOptions.pageSize = pageSize.trim();
         }
 
-        win.webContents.print(printOptions, (success, failureReason) => {
-            if (!success) console.log("حالة تنفيذ الطباعة:", failureReason);
+        const printed = await new Promise((resolve) => {
+            win.webContents.print(printOptions, (success, failureReason) => {
+                if (!success) console.log("حالة تنفيذ الطباعة:", failureReason);
+                resolve({ success: !!success, error: success ? null : (failureReason || 'فشلت الطباعة') });
+            });
         });
-
-        return { success: true };
+        return printed;
     } catch (err) {
         return { success: false, error: err.message };
     }
