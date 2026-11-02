@@ -1696,15 +1696,16 @@ function setToolbarPosition(pos) {
 
 // 1. تصحيح الوضع اللوني وتغيير تفعيل الزر فوراً في الشريط العلوي ونافذة الإعدادات
 function setThemeMode(mode) {
+    if (mode !== 'light' && mode !== 'dark') mode = 'dark';
     document.documentElement.setAttribute("data-theme", mode);
-    localStorage.setItem('examy_theme_mode', mode);
-
-    // تحديث وتلوين الزر في الشريط العلوي وداخل نافذة الإعدادات معاً
+    document.documentElement.style.colorScheme = mode;
+    try { localStorage.setItem('examy_theme_mode', mode); } catch (e) {}
     document.querySelectorAll('.segmented-btns button').forEach(btn => {
-        const isTarget = btn.getAttribute('onclick')?.includes(`'${mode}'`);
-        btn.classList.toggle('active', !!isTarget);
+        const action = btn.getAttribute('onclick') || '';
+        const active = action.includes("'" + mode + "'");
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
-
     if (typeof SoundFX !== 'undefined') SoundFX.click();
 }
 
