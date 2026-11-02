@@ -100,6 +100,21 @@ function buildPreviewDock(){
  if(oldShape)$('#examyPreviewBorder').value=oldShape.value;
  if(oldColor)$('#examyPreviewColor').value=oldColor.value;
 }
+function addAdvancedWorkspace(){
+ const nav=$('.ribbon-tabs-nav'),host=$('.ribbon-panels-host');if(!nav||!host||$('#rtab-advancedStudio'))return;
+ const tab=document.createElement('button');tab.type='button';tab.className='r-tab-btn';tab.dataset.tab='advancedStudio';tab.textContent='🧠 الاستوديو المتقدم';nav.appendChild(tab);
+ const panel=document.createElement('div');panel.id='rtab-advancedStudio';panel.className='ribbon-tab-panel';panel.innerHTML='<section class="r-group"><span class="r-group-title">إنشاء ذكي</span><div class="r-group-row"><button type="button" class="tool-btn" id="exAdvAI">✨ مساعد الأسئلة الذكي</button><button type="button" id="exAdvAnswer" class="tool-btn">📝 ورقة إجابة الطالب</button><button type="button" id="exAdvShuffle" class="tool-btn">🔀 إنشاء نموذج بديل</button></div></section><section class="r-group"><span class="r-group-title">تنظيم الاختبار</span><div class="r-group-row"><button type="button" id="exAdvBalance" class="tool-btn">⚖️ توزيع الدرجات</button><button type="button" id="exAdvSpacing" class="tool-btn">↕️ موازنة المسافات</button><button type="button" id="exAdvShrink" class="tool-btn">📄 ملاءمة محتوى الصفحة</button></div></section><section class="r-group"><span class="r-group-title">الفحص والجودة</span><div class="r-group-row"><button type="button" id="exAdvPreflight" class="tool-btn">🔎 فحص قبل الطباعة</button><button type="button" id="exAdvPageFlow" class="tool-btn">📚 إعادة توزيع الصفحات</button><button type="button" id="exAdvFind" class="tool-btn">🔍 بحث واستبدال</button></div></section>';
+ host.appendChild(panel);
+ $('#exAdvAI').onclick=openAIStudio;
+ $('#exAdvAnswer').onclick=()=>window.AdvancedExamTools?.generateStudentAnswerSheet?.();
+ $('#exAdvShuffle').onclick=()=>window.AdvancedExamTools?.generateShuffleVersion?.('ب');
+ $('#exAdvBalance').onclick=()=>window.autoDistributeSpacing?.();
+ $('#exAdvSpacing').onclick=()=>window.autoDistributeSpacing?.();
+ $('#exAdvShrink').onclick=()=>window.PreFlightSystem?.smartShrinkPage?.();
+ $('#exAdvPreflight').onclick=()=>window.PreFlightSystem?.openPreflightModal?.();
+ $('#exAdvPageFlow').onclick=()=>window.ExamyPages?.flow?.();
+ $('#exAdvFind').onclick=()=>window.FindReplace?.toggle?.();
+}
 function addAIStudio(){
  const home=$('#rtab-home');if(home&&!$('#examyAIStudioBtn')){
   const g=addGroup(home,'الستوديو الذكي',`<button type="button" class="tool-btn" id="examyAIStudioBtn">✨ فتح الستوديو الذكي</button>`);
@@ -119,7 +134,7 @@ function observeContext(){
  document.addEventListener('selectionchange',()=>{const bar=$('#inlineTextFormatter');const sel=getSelection();if(!bar||!sel||sel.isCollapsed)return;const node=sel.anchorNode?.nodeType===3?sel.anchorNode.parentElement:sel.anchorNode;const edit=node?.closest?.('[contenteditable="true"]');if(!edit)return;bar.classList.add('active');});
  document.addEventListener('click',e=>{const menu=e.target.closest('.dropdown-content-pane');if(!menu||!menu.classList.contains('active'))return;requestAnimationFrame(()=>{const r=menu.getBoundingClientRect(),pad=12;let left=Math.max(pad,Math.min(r.left,innerWidth-r.width-pad));let top=Math.max(pad,Math.min(r.top,innerHeight-r.height-pad));menu.style.left=left+'px';menu.style.top=top+'px';menu.style.right='auto';menu.style.margin='0';menu.style.maxHeight=Math.max(180,innerHeight-top-pad)+'px';})},true);
 }
-function boot(){safe(addLayoutTools);safe(addParagraphControls);safe(addSettingsAndFrameControls);safe(buildPreviewDock);safe(addAIStudio);safe(observeContext);
+function boot(){safe(addLayoutTools);safe(addParagraphControls);safe(addSettingsAndFrameControls);safe(buildPreviewDock);safe(addAIStudio);safe(addAdvancedWorkspace);safe(observeContext);
  const saved=localStorage.getItem('examy_page_margins');if(saved){try{const v=JSON.parse(saved);Object.entries(v).forEach(([k,n])=>{const id='examyMargin'+k[0].toUpperCase()+k.slice(1);if($('#'+id))$('#'+id).value=n;const set=$('#examySetMargin_'+k);if(set)set.value=n});}catch{}}
  const paper=localStorage.getItem('examy_studio_paper')||'A4';$$('.a4-sheet').forEach(s=>s.dataset.paperSize=paper);
 }
