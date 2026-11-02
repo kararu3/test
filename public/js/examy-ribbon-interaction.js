@@ -37,7 +37,7 @@
 
   function collapsePanel() {
     const toolbar = $('#mainToolbar');
-    if (!toolbar || pinned || toolbar.matches(':hover') || toolbar.contains(document.activeElement)) return;
+    if (!toolbar || pinned || toolbar.contains(document.activeElement)) return;
     toolbar.classList.add('ribbon-collapsed');
     toolbar.classList.remove('ribbon-panel-open');
   }
