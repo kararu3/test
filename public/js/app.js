@@ -1528,15 +1528,10 @@ async function handleActivateBtn() {
             setTimeout(() => {
                 document.getElementById("licenseModal")?.classList.remove("active");
                 window.examyLicenseValid = true;
-                if (window.examyUserAuthenticated) {
-                    if (!localStorage.getItem('exambuilder_lang')) {
-                        document.getElementById("languageModal")?.classList.add("active");
-                    } else {
-                        document.getElementById("languageModal")?.classList.remove("active");
-                    }
+                if (!localStorage.getItem('exambuilder_lang')) {
+                    document.getElementById("languageModal")?.classList.add("active");
                 } else {
                     document.getElementById("languageModal")?.classList.remove("active");
-                    window.ExamyAuth?.show();
                 }
             }, 700);
 
