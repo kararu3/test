@@ -18,7 +18,8 @@
     <link rel="stylesheet" href="css/completion-suite.css">
     <script src="js/examy-startup-fix.js"></script>
     <link rel="stylesheet" href="css/examy-stability-fix.css">
-    <link rel="stylesheet" href="css/examy-command-center.css">\n    <link rel="stylesheet" href="css/examy-polish-final.css">
+    <link rel="stylesheet" href="css/examy-command-center.css">
+    <link rel="stylesheet" href="css/examy-polish-final.css">
 </head>
 <body class="pos-top">
 
@@ -159,12 +160,12 @@
         <!-- شريط التبويبات العلوي مع زر الإعدادات والزوم -->
         <div class="ribbon-top-header">
             <nav class="ribbon-tabs-nav">
-                <button type="button" class="r-tab-btn active" data-tab="home">🏠 الرئيسية</button>
-                <button type="button" class="r-tab-btn" data-tab="insert">➕ إدراج</button>
-                <button type="button" class="r-tab-btn" data-tab="layout">📐 تخطيط الصفحة</button>
-                <button type="button" class="r-tab-btn" data-tab="print">🖨️ المعاينة والطباعة</button>
-                <button type="button" class="r-tab-btn" data-tab="file">📁 ملف والنظام</button>
-                <button type="button" class="r-tab-btn" id="tabBtnTableDesign" style="display:none; background:#047857; color:#fff;" data-tab="tableDesign">📊 تصميم الجدول</button>
+                <button type="button" class="r-tab-btn active" data-tab="home" onclick="switchRibbonTab('home', this)">🏠 الرئيسية</button>
+                <button type="button" class="r-tab-btn" data-tab="insert" onclick="switchRibbonTab('insert', this)">➕ إدراج</button>
+                <button type="button" class="r-tab-btn" data-tab="layout" onclick="switchRibbonTab('layout', this)">📐 تخطيط الصفحة</button>
+                <button type="button" class="r-tab-btn" data-tab="print" onclick="switchRibbonTab('print', this)">🖨️ المعاينة والطباعة</button>
+                <button type="button" class="r-tab-btn" data-tab="file" onclick="switchRibbonTab('file', this)">📁 ملف والنظام</button>
+                <button type="button" class="r-tab-btn" id="tabBtnTableDesign" style="display:none; background:#047857; color:#fff;" data-tab="tableDesign" onclick="switchRibbonTab('tableDesign', this)">📊 تصميم الجدول</button>
             </nav>
 
             <div class="ribbon-fixed-controls">
@@ -1238,6 +1239,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="js/ultimate-engine.js"></script>
-    <script src="js/completion-suite.js"></script>\n<script src="js/examy-dropdown-guard.js"></script>
+    <script src="js/completion-suite.js"></script>
+<script src="js/examy-dropdown-guard.js"></script>
 </body>
 </html>
