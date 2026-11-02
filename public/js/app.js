@@ -113,6 +113,10 @@ window.addEventListener('DOMContentLoaded', async () => {
             isLicenseValid = false;
         }
 
+        // حساب المشترك هو مصدر الصلاحية الحالي: خادم إدارة المستخدمين يتحقق من
+        // التفعيل والتجميد والانتهاء وربط الجهاز، لذلك لا نطلب مفتاحاً منفصلاً مرة أخرى.
+        if (isUserAuthenticated) isLicenseValid = true;
+
         // استرجاع لغة التطبيق وتطبيقها فوراً لتجنب ظهور نافذة اختيار اللغة عند كل إقلاع
         const savedLang = localStorage.getItem('exambuilder_lang') || 'ar';
         currentLang = savedLang;
