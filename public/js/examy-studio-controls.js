@@ -32,7 +32,7 @@ function applyMargins(){
  const vals={top:+$('#examyMarginTop').value||0,bottom:+$('#examyMarginBottom').value||0,right:+$('#examyMarginRight').value||0,left:+$('#examyMarginLeft').value||0};
  Object.entries(vals).forEach(([k,v])=>vals[k]=Math.max(0,Math.min(80,v)));
  $$('.a4-sheet .sheet-frame-box').forEach(box=>{box.style.setProperty('--ex-margin-top',vals.top+'mm');box.style.setProperty('--ex-margin-bottom',vals.bottom+'mm');box.style.setProperty('--ex-margin-right',vals.right+'mm');box.style.setProperty('--ex-margin-left',vals.left+'mm');box.style.padding=`${vals.top}mm ${vals.left}mm ${vals.bottom}mm ${vals.right}mm`;});
- localStorage.setItem('examy_page_margins',JSON.stringify(vals));$$('.a4-sheet').forEach(refreshSheet);if(window.UIEffects?.showToast)UIEffects.showToast('تم تطبيق هوامش الصفحة','success');
+ localStorage.setItem('examy_page_margins',JSON.stringify(vals));$$('.a4-sheet').forEach(refreshSheet);if(typeof UIEffects!=='undefined'&&UIEffects.showToast)UIEffects.showToast('تم تطبيق هوامش الصفحة','success');
 }
 function addParagraphControls(){
  const bar=$('#inlineTextFormatter');if(!bar||$('.examy-format-extra'))return;
@@ -48,7 +48,7 @@ function addParagraphControls(){
  wrap.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;formatBlock(b.dataset.act)});
 }
 function formatBlock(action){
- const block=activeBlock();if(!block){window.UIEffects?.showToast('ضع المؤشر داخل نص أولاً','warning');return}
+ const block=activeBlock();if(!block){(typeof UIEffects!=='undefined'&&UIEffects.showToast)&&UIEffects.showToast('ضع المؤشر داخل نص أولاً','warning');return}
  if(typeof window.recordUndoState==='function')window.recordUndoState();
  const px=v=>Math.max(0,Math.min(120,v));
  const cs=getComputedStyle(block);
@@ -61,7 +61,7 @@ function formatBlock(action){
   const s=getSelection();
   if(s&&s.rangeCount&&!s.isCollapsed){s.deleteFromDocument()}
   else if(block.matches('p,li,td,th') && block!==selectedEditable()){block.remove()}
-  else {window.UIEffects?.showToast('حدد نص السطر الذي تريد حذفه أولاً لتجنب حذف محتوى السؤال بالكامل','warning');return}
+  else {(typeof UIEffects!=='undefined'&&UIEffects.showToast)&&UIEffects.showToast('حدد نص السطر الذي تريد حذفه أولاً لتجنب حذف محتوى السؤال بالكامل','warning');return}
  }
  refreshSheet(block.closest('.a4-sheet'));
 }
@@ -107,14 +107,14 @@ function addAdvancedWorkspace(){
  const panel=document.createElement('div');panel.id='rtab-advancedStudio';panel.className='ribbon-tab-panel';panel.innerHTML='<section class="r-group"><span class="r-group-title">إنشاء ذكي</span><div class="r-group-row"><button type="button" class="tool-btn" id="exAdvAI">✨ مساعد الأسئلة الذكي</button><button type="button" id="exAdvAnswer" class="tool-btn">📝 ورقة إجابة الطالب</button><button type="button" id="exAdvShuffle" class="tool-btn">🔀 إنشاء نموذج بديل</button></div></section><section class="r-group"><span class="r-group-title">تنظيم الاختبار</span><div class="r-group-row"><button type="button" id="exAdvBalance" class="tool-btn">⚖️ توزيع الدرجات</button><button type="button" id="exAdvSpacing" class="tool-btn">↕️ موازنة المسافات</button><button type="button" id="exAdvShrink" class="tool-btn">📄 ملاءمة محتوى الصفحة</button></div></section><section class="r-group"><span class="r-group-title">الفحص والجودة</span><div class="r-group-row"><button type="button" id="exAdvPreflight" class="tool-btn">🔎 فحص قبل الطباعة</button><button type="button" id="exAdvPageFlow" class="tool-btn">📚 إعادة توزيع الصفحات</button><button type="button" id="exAdvFind" class="tool-btn">🔍 بحث واستبدال</button></div></section>';
  host.appendChild(panel);
  $('#exAdvAI').onclick=openAIStudio;
- $('#exAdvAnswer').onclick=()=>window.AdvancedExamTools?.generateStudentAnswerSheet?.();
- $('#exAdvShuffle').onclick=()=>window.AdvancedExamTools?.generateShuffleVersion?.('ب');
- $('#exAdvBalance').onclick=()=>window.autoDistributeSpacing?.();
- $('#exAdvSpacing').onclick=()=>window.autoDistributeSpacing?.();
- $('#exAdvShrink').onclick=()=>window.PreFlightSystem?.smartShrinkPage?.();
- $('#exAdvPreflight').onclick=()=>window.PreFlightSystem?.openPreflightModal?.();
- $('#exAdvPageFlow').onclick=()=>window.ExamyPages?.flow?.();
- $('#exAdvFind').onclick=()=>window.FindReplace?.toggle?.();
+ $('#exAdvAnswer').onclick=()=>{if(typeof AdvancedExamTools!=='undefined')AdvancedExamTools.generateStudentAnswerSheet()};
+ $('#exAdvShuffle').onclick=()=>{if(typeof AdvancedExamTools!=='undefined')AdvancedExamTools.generateShuffleVersion('ب')};
+ $('#exAdvBalance').onclick=()=>{if(typeof autoDistributeSpacing==='function')autoDistributeSpacing()};
+ $('#exAdvSpacing').onclick=()=>{if(typeof autoDistributeSpacing==='function')autoDistributeSpacing()};
+ $('#exAdvShrink').onclick=()=>{if(typeof PreFlightSystem!=='undefined')PreFlightSystem.smartShrinkPage()};
+ $('#exAdvPreflight').onclick=()=>{if(typeof PreFlightSystem!=='undefined')PreFlightSystem.openPreflightModal()};
+ $('#exAdvPageFlow').onclick=()=>{if(typeof ExamyPages!=='undefined')ExamyPages.flow()};
+ $('#exAdvFind').onclick=()=>{if(typeof FindReplace!=='undefined')FindReplace.toggle()};
 }
 function addAIStudio(){
  const home=$('#rtab-home');if(home&&!$('#examyAIStudioBtn')){
