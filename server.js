@@ -26,9 +26,18 @@ app.use(express.json({ limit: '50mb' }));
 const PUBLIC_DIR = path.join(__dirname, 'public');
 app.use(express.static(PUBLIC_DIR));
 
-const DB_DIR = path.join(__dirname, 'database');
-if (!fs.existsSync(DB_DIR)) {
-    fs.mkdirSync(DB_DIR, { recursive: true });
+const SOURCE_DB_DIR = path.join(__dirname, 'database');
+const DB_DIR = path.resolve(process.env.EXAMY_DATA_DIR || SOURCE_DB_DIR);
+if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
+// First launch in Electron: seed writable userData storage from bundled JSON defaults.
+if (DB_DIR !== SOURCE_DB_DIR) {
+    for (const name of ['bank_ar.json', 'bank_en.json', 'archive_ar.json', 'archive_en.json', 'lan_queue.json']) {
+        const target = path.join(DB_DIR, name);
+        const source = path.join(SOURCE_DB_DIR, name);
+        if (!fs.existsSync(target) && fs.existsSync(source)) {
+            try { fs.copyFileSync(source, target); } catch (e) { console.warn('تعذر تهيئة ملف بيانات:', name, e.message); }
+        }
+    }
 }
 
 const StorageEngine = {
