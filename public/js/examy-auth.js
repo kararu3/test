@@ -91,6 +91,7 @@
 
             rememberedCredentials = { username, password };
             window.examyUserAuthenticated = true;
+            window.examyLicenseValid = true;
 
             if (remember) {
                 if (window.examy?.saveRememberedLogin) {
