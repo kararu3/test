@@ -1,0 +1,277 @@
+/* Examy PRO — compact, zero-scroll ribbon + preview/settings polish.
+   Loaded last to neutralize legacy fixed/side ribbon rules without changing handlers. */
+:root{
+ --ex-motion-fast:160ms;--ex-motion-med:260ms;--ex-motion-ease:cubic-bezier(.2,.75,.25,1);
+ --ex-accent:#5578f5;--ex-accent-2:#8b5cf6;--ex-glass:rgba(255,255,255,.08);
+}
+html[data-theme="light"]{
+ --ex-ui-bg:#f4f7fc;--ex-ui-surface:#fff;--ex-ui-soft:#edf2fa;--ex-ui-line:#dce5f1;
+ --ex-ui-text:#1d2b45;--ex-ui-muted:#687995;--ex-ui-shadow:0 10px 28px rgba(34,55,95,.09);
+}
+html[data-theme="dark"]{
+ --ex-ui-bg:#0b1220;--ex-ui-surface:#111c30;--ex-ui-soft:#17243a;--ex-ui-line:#293951;
+ --ex-ui-text:#e8efff;--ex-ui-muted:#9aabc5;--ex-ui-shadow:0 12px 32px rgba(0,0,0,.24);
+}
+/* One toolbar only: always in normal document flow, never a side ribbon. */
+body.pos-top #mainToolbar,body.pos-left #mainToolbar,body.pos-right #mainToolbar,
+#mainToolbar.ribbon-toolbar-system{
+ position:relative!important;inset:auto!important;float:none!important;transform:none!important;
+ display:block!important;width:100%!important;max-width:100%!important;height:auto!important;
+ min-height:0!important;margin:0!important;padding:7px 12px 8px!important;
+ overflow:visible!important;z-index:80!important;box-sizing:border-box!important;
+ border:0!important;border-bottom:1px solid var(--ex-ui-line)!important;border-radius:0 0 13px 13px!important;
+ background:linear-gradient(115deg,var(--ex-ui-surface),var(--ex-ui-bg))!important;
+ color:var(--ex-ui-text)!important;box-shadow:var(--ex-ui-shadow)!important;
+}
+#mainToolbar .ribbon-top-header{
+ display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:space-between!important;
+ gap:5px 10px!important;min-height:0!important;height:auto!important;padding:0 0 6px!important;margin:0!important;
+ border:0!important;border-bottom:1px solid var(--ex-ui-line)!important;background:transparent!important;
+}
+#mainToolbar .ribbon-tabs-nav{
+ display:flex!important;flex:1 1 620px!important;flex-wrap:wrap!important;align-items:center!important;
+ gap:4px!important;min-width:0!important;width:auto!important;height:auto!important;padding:0!important;
+ overflow:visible!important;scrollbar-width:none!important;
+}
+#mainToolbar .ribbon-tabs-nav::-webkit-scrollbar{display:none!important}
+#mainToolbar .r-tab-btn{
+ flex:0 1 auto!important;min-width:0!important;min-height:32px!important;height:32px!important;
+ padding:0 10px!important;border:1px solid transparent!important;border-radius:9px!important;
+ background:transparent!important;color:var(--ex-ui-muted)!important;font-family:inherit!important;font-size:11px!important;font-weight:800!important;line-height:1.2!important;
+ white-space:nowrap!important;transition:all var(--ex-motion-med) var(--ex-motion-ease)!important;
+}
+#mainToolbar .r-tab-btn:hover{background:var(--ex-ui-soft)!important;color:var(--ex-ui-text)!important;transform:translateY(-1px)!important}
+#mainToolbar .r-tab-btn.active{background:linear-gradient(120deg,#4569ec,#7658df)!important;color:#fff!important;
+ box-shadow:0 4px 12px rgba(69,105,236,.22)!important}
+#mainToolbar .ribbon-fixed-controls{
+ display:flex!important;flex:0 1 auto!important;flex-wrap:wrap!important;align-items:center!important;
+ justify-content:flex-end!important;gap:5px!important;min-width:0!important;margin:0!important;padding:0!important;
+}
+#mainToolbar .ribbon-fixed-controls>*{min-height:31px!important}
+#mainToolbar .ribbon-fixed-controls>.tool-btn{padding:0 9px!important;font-size:10.5px!important;border-radius:8px!important}
+#mainToolbar .zoom-global-widget{min-height:31px!important;padding:0 7px!important;border-radius:8px!important}
+#mainToolbar .zoom-select-input{height:25px!important;min-width:60px!important}
+#mainToolbar .ribbon-panels-host{
+ display:block!important;width:100%!important;min-width:0!important;height:auto!important;min-height:0!important;
+ max-height:none!important;overflow:visible!important;margin:6px 0 0!important;padding:0!important;
+ border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;
+}
+#mainToolbar .ribbon-tab-panel{
+ display:none!important;flex-flow:row wrap!important;align-items:stretch!important;justify-content:flex-start!important;
+ gap:5px!important;width:100%!important;min-width:0!important;height:auto!important;min-height:0!important;
+ max-height:none!important;overflow:visible!important;padding:0!important;box-sizing:border-box!important;
+}
+#mainToolbar .ribbon-tab-panel.active{display:flex!important}
+#mainToolbar .r-group{
+ display:flex!important;flex:0 1 auto!important;flex-direction:column!important;justify-content:center!important;
+ align-items:stretch!important;gap:5px!important;min-width:0!important;max-width:100%!important;
+ padding:4px 8px!important;margin:0!important;border:1px solid var(--ex-ui-line)!important;
+ border-radius:9px!important;background:var(--ex-ui-surface)!important;box-sizing:border-box!important;
+}
+#mainToolbar .r-group-title{position:static!important;margin:0!important;padding:0!important;
+ color:var(--ex-ui-muted)!important;font-size:9px!important;line-height:1.2!important;font-weight:900!important}
+#mainToolbar .r-group-row{display:flex!important;flex:0 1 auto!important;flex-flow:row wrap!important;
+ align-items:center!important;gap:4px!important;min-width:0!important;overflow:visible!important}
+#mainToolbar .r-sep{display:none!important}
+#mainToolbar .tool-btn,#mainToolbar .r-group-row>button{
+ flex:0 1 auto!important;min-width:0!important;min-height:29px!important;height:auto!important;
+ padding:5px 8px!important;border:1px solid var(--ex-ui-line)!important;border-radius:8px!important;
+ background:var(--ex-ui-soft)!important;color:var(--ex-ui-text)!important;font-size:10.5px!important;
+ font-weight:800!important;line-height:1.2!important;white-space:nowrap!important;box-shadow:none!important;
+ transition:transform var(--ex-motion-fast) var(--ex-motion-ease),background var(--ex-motion-fast),box-shadow var(--ex-motion-fast)!important;
+}
+#mainToolbar .tool-btn:hover,#mainToolbar .r-group-row>button:hover{
+ transform:translateY(-1px)!important;background:color-mix(in srgb,var(--ex-accent) 13%,var(--ex-ui-surface))!important;
+ border-color:var(--ex-accent)!important;box-shadow:0 4px 10px rgba(49,86,170,.12)!important;
+}
+#mainToolbar .tool-btn:active,#mainToolbar .r-group-row>button:active{transform:scale(.97)!important}
+#mainToolbar .segmented-btns{gap:3px!important;padding:2px!important;border-radius:8px!important}
+#mainToolbar .segmented-btns button{min-height:25px!important;padding:3px 7px!important;font-size:9.5px!important}
+#mainToolbar input[type=color]{width:22px!important;height:22px!important}
+#mainToolbar select,#mainToolbar input[type=number]{max-width:125px!important;min-height:28px!important;padding:3px 6px!important}
+#appStage{position:relative!important;z-index:1!important;clear:both!important;margin-top:10px!important}
+/* Remove accidental legacy right/left rails that duplicate the ribbon. */
+body.pos-left #mainToolbar,body.pos-right #mainToolbar{left:auto!important;right:auto!important}
+body.pos-left .ribbon-toolbar-system,body.pos-right .ribbon-toolbar-system{writing-mode:horizontal-tb!important}
+/* Preview is a single dedicated modal toolbar; hide the app chrome while open. */
+body:has(#printPreviewModal.active) #appTitlebar,
+body:has(#printPreviewModal.active) #mainToolbar{display:none!important}
+#printPreviewModal{inset:0!important;top:0!important;z-index:1000000!important}
+#printPreviewModal .preview-top-toolbar{
+ flex:0 0 auto!important;min-height:48px!important;height:auto!important;max-height:none!important;
+ display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:space-between!important;
+ gap:7px!important;padding:7px 12px!important;overflow:visible!important;box-sizing:border-box!important;
+}
+#printPreviewModal .preview-border-toolbar,#printPreviewModal .preview-controls{
+ display:flex!important;flex-wrap:wrap!important;align-items:center!important;gap:6px!important;min-width:0!important;
+}
+#printPreviewModal .preview-viewport-scroll{min-height:0!important;flex:1 1 auto!important;overflow:auto!important}
+#printPreviewModal .preview-zoom-btn,#printPreviewModal .btn-confirm-print,#printPreviewModal .btn-close-preview{
+ min-height:31px!important;border-radius:8px!important;transition:transform .18s ease,filter .18s ease!important;
+}
+#printPreviewModal button:hover{transform:translateY(-1px)!important;filter:brightness(1.12)!important}
+/* Bring every dropdown inward from the viewport edge; JS applies exact clamped placement. */
+.dropdown-content-pane.floating-dropdown{
+ position:fixed!important;z-index:1000001!important;max-width:min(420px,calc(100vw - 28px))!important;
+ border:1px solid var(--ex-ui-line)!important;border-radius:12px!important;
+ box-shadow:0 18px 44px rgba(5,15,35,.24)!important;transform-origin:top right;
+ animation:exDropdownIn .17s var(--ex-motion-ease) both;
+}
+@keyframes exDropdownIn{from{opacity:0;transform:translateY(-5px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+/* Restore the animated wordmark and continuously breathing sparkle. */
+.animated-brand-title{
+ background:linear-gradient(90deg,#38bdf8,#818cf8,#f472b6,#fbbf24,#34d399,#38bdf8)!important;
+ background-size:350% 100%!important;-webkit-background-clip:text!important;background-clip:text!important;
+ -webkit-text-fill-color:transparent!important;animation:exBrandFlow 6s linear infinite!important;
+ filter:drop-shadow(0 0 7px rgba(56,189,248,.3))!important;
+}
+@keyframes exBrandFlow{0%{background-position:0% 50%;filter:drop-shadow(0 0 5px #38bdf855)}
+ 50%{background-position:100% 50%;filter:drop-shadow(0 0 12px #f472b866)}100%{background-position:0% 50%;filter:drop-shadow(0 0 5px #38bdf855)}}
+.brand-sparkle{display:inline-block!important;color:#fbbf24!important;transform-origin:center!important;
+ animation:exStarPulse 1.65s ease-in-out infinite!important;text-shadow:0 0 7px #fbbf24aa!important}
+@keyframes exStarPulse{0%,100%{transform:rotate(0) scale(.82);filter:brightness(.9)}
+ 50%{transform:rotate(24deg) scale(1.42);filter:brightness(1.5)}}
+/* Gentle motion system; honor reduced-motion accessibility. */
+button,.tool-btn,.p-act-btn,.b-btn,.doc-info-strip,.stats-badge,.modal-dialog,.overlay-card,
+.question-container,.question-card,.a4-sheet,.bottom-action-bar,.r-group{
+ transition:background-color .2s ease,border-color .2s ease,box-shadow .22s ease,transform .2s var(--ex-motion-ease)!important;
+}
+.question-container:hover,.question-card:hover{box-shadow:0 7px 20px rgba(55,94,170,.12)!important}
+.a4-sheet{animation:exSheetArrive .32s var(--ex-motion-ease) both}
+@keyframes exSheetArrive{from{opacity:.72;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.modal-backdrop.active,.overlay-card,.modal-dialog{animation:exModalIn .22s var(--ex-motion-ease) both}
+@keyframes exModalIn{from{opacity:.65;transform:translateY(7px) scale(.99)}to{opacity:1;transform:translateY(0) scale(1)}}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #5b83ff!important;outline-offset:2px!important}
+@media(max-width:900px){
+ #mainToolbar .ribbon-tabs-nav{flex-basis:100%!important}
+ #mainToolbar .ribbon-fixed-controls{justify-content:flex-start!important}
+ #mainToolbar .r-group{flex:1 1 180px!important}
+}
+@media(max-width:600px){
+ #mainToolbar{padding:6px!important}
+ #mainToolbar .r-tab-btn{min-height:29px!important;height:29px!important;padding:0 7px!important;font-size:10px!important}
+ #mainToolbar .r-group{flex:1 1 100%!important}
+ #printPreviewModal .preview-top-toolbar{align-items:flex-start!important}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
+}
+
+/* Settings dialog: clear two-column workspace with a compact navigation rail. */
+#settingsModal .modal-dialog.modal-settings-pro{
+ width:min(1120px,96vw)!important;max-width:1120px!important;max-height:88vh!important;
+ display:flex!important;flex-direction:column!important;overflow:hidden!important;
+ border:1px solid var(--ex-ui-line)!important;border-radius:18px!important;
+ background:var(--ex-ui-surface)!important;color:var(--ex-ui-text)!important;
+ box-shadow:0 26px 80px rgba(5,15,35,.28)!important;
+}
+#settingsModal .dialog-top{
+ flex:0 0 auto!important;padding:14px 18px!important;border-bottom:1px solid var(--ex-ui-line)!important;
+ background:linear-gradient(110deg,var(--ex-ui-surface),var(--ex-ui-soft))!important;
+}
+#settingsModal .settings-body-layout{
+ display:grid!important;grid-template-columns:190px minmax(0,1fr)!important;gap:14px!important;
+ min-height:0!important;overflow:hidden!important;padding:14px!important;
+}
+#settingsModal .settings-sidebar-nav{
+ display:flex!important;flex-direction:column!important;gap:5px!important;padding:7px!important;
+ border:1px solid var(--ex-ui-line)!important;border-radius:12px!important;background:var(--ex-ui-bg)!important;
+ overflow:auto!important;
+}
+#settingsModal .s-tab-btn{
+ justify-content:flex-start!important;text-align:right!important;min-height:38px!important;padding:8px 10px!important;
+ border:1px solid transparent!important;border-radius:9px!important;background:transparent!important;
+ color:var(--ex-ui-muted)!important;font-weight:800!important;transition:all .18s ease!important;
+}
+#settingsModal .s-tab-btn:hover{background:var(--ex-ui-soft)!important;color:var(--ex-ui-text)!important}
+#settingsModal .s-tab-btn.active{background:linear-gradient(120deg,#4569ec,#7658df)!important;color:#fff!important}
+#settingsModal .settings-content-area{min-width:0!important;min-height:0!important;overflow:auto!important;padding:2px 4px 10px!important}
+#settingsModal .settings-section-card{
+ padding:15px!important;margin:0 0 12px!important;border:1px solid var(--ex-ui-line)!important;
+ border-radius:12px!important;background:var(--ex-ui-bg)!important;box-shadow:0 5px 16px rgba(20,40,80,.045)!important;
+}
+#settingsModal .settings-card-title{font-size:13px!important;font-weight:900!important;color:var(--ex-ui-text)!important;margin-bottom:12px!important}
+#settingsModal .field-row{padding:9px!important;border:1px solid var(--ex-ui-line)!important;border-radius:9px!important;background:var(--ex-ui-surface)!important}
+#settingsModal label{color:var(--ex-ui-muted)!important;font-weight:800!important}
+#settingsModal input:not([type=color]),#settingsModal select,#settingsModal textarea{
+ border:1px solid var(--ex-ui-line)!important;border-radius:8px!important;background:var(--ex-ui-surface)!important;
+ color:var(--ex-ui-text)!important;padding:8px!important;
+}
+#settingsModal button{transition:transform .17s ease,background .17s ease,box-shadow .17s ease!important}
+#settingsModal button:hover{transform:translateY(-1px)!important}
+@media(max-width:720px){
+ #settingsModal .settings-body-layout{grid-template-columns:1fr!important;overflow:auto!important}
+ #settingsModal .settings-sidebar-nav{flex-direction:row!important;flex-wrap:wrap!important}
+ #settingsModal .settings-content-area{overflow:visible!important}
+}
+
+
+/* Final ribbon interaction/layout hardening. */
+html,body{max-width:100%;overflow-x:hidden!important}
+#mainToolbar{max-width:100vw!important;overflow:visible!important}
+#mainToolbar .ribbon-top-header{min-width:0!important;max-width:100%!important}
+#mainToolbar .ribbon-tabs-nav{
+ flex:1 1 100%!important;min-width:0!important;max-width:100%!important;
+ flex-wrap:wrap!important;overflow:visible!important;white-space:normal!important;
+}
+#mainToolbar .r-tab-btn{pointer-events:auto!important;position:relative!important;z-index:2!important;cursor:pointer!important}
+#mainToolbar .ribbon-fixed-controls{flex:1 1 100%!important;min-width:0!important;max-width:100%!important;flex-wrap:wrap!important}
+#mainToolbar .ribbon-panels-host{min-width:0!important;max-width:100%!important;overflow:visible!important}
+#mainToolbar .ribbon-tab-panel{
+ min-width:0!important;max-width:100%!important;width:100%!important;
+ flex-wrap:wrap!important;overflow:visible!important;
+}
+#mainToolbar .r-group{min-width:0!important;max-width:100%!important;flex:0 1 auto!important}
+#mainToolbar .r-group-row{min-width:0!important;max-width:100%!important;flex-wrap:wrap!important}
+#mainToolbar .ribbon-tabs-nav::-webkit-scrollbar,
+#mainToolbar .ribbon-panels-host::-webkit-scrollbar{display:none!important}
+#mainToolbar .ribbon-tabs-nav,#mainToolbar .ribbon-panels-host{scrollbar-width:none!important}
+.custom-titlebar{z-index:20!important}
+#mainToolbar{position:relative!important;z-index:30!important}
+@media(max-width:760px){
+ #mainToolbar .r-tab-btn{flex:1 1 auto!important}
+ #mainToolbar .r-group{flex:1 1 100%!important}
+}
+
+
+/* One horizontal command row: section tabs on the right, controls on the left. */
+#mainToolbar .ribbon-top-header{
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+ grid-template-areas:"tabs controls"!important;flex-wrap:nowrap!important;
+ align-items:center!important;justify-content:stretch!important;gap:8px!important;
+ min-width:0!important;padding:0 0 6px!important;
+}
+#mainToolbar .ribbon-tabs-nav{
+ grid-area:tabs!important;display:flex!important;flex:1 1 auto!important;
+ flex-wrap:nowrap!important;justify-content:flex-start!important;align-items:center!important;
+ min-width:0!important;width:auto!important;max-width:100%!important;gap:3px!important;
+ overflow:hidden!important;white-space:nowrap!important;
+}
+#mainToolbar .r-tab-btn{
+ flex:0 1 auto!important;min-width:0!important;
+ padding:0 clamp(5px,.8vw,11px)!important;font-size:clamp(9px,.78vw,11px)!important;
+}
+#mainToolbar .ribbon-fixed-controls{
+ grid-area:controls!important;display:flex!important;flex:0 0 auto!important;
+ flex-wrap:nowrap!important;justify-content:flex-start!important;align-items:center!important;
+ min-width:max-content!important;gap:5px!important;direction:rtl!important;
+}
+#mainToolbar .ribbon-fixed-controls>*{flex-shrink:0!important}
+#mainToolbar .ribbon-fixed-controls>.tool-btn{
+ min-height:31px!important;padding:0 8px!important;font-size:10px!important;white-space:nowrap!important;
+}
+#mainToolbar .zoom-global-widget{min-height:31px!important;white-space:nowrap!important}
+#mainToolbar .zoom-select-input{min-width:54px!important}
+@media(max-width:900px){
+ #mainToolbar .ribbon-top-header{grid-template-columns:minmax(0,1fr) auto!important;gap:4px!important}
+ #mainToolbar .r-tab-btn{padding:0 5px!important;font-size:9px!important}
+ #mainToolbar .ribbon-fixed-controls{gap:3px!important}
+ #mainToolbar .ribbon-fixed-controls>.tool-btn{padding:0 5px!important;font-size:9px!important}
+}
+@media(max-width:680px){
+ #mainToolbar .ribbon-top-header{grid-template-columns:minmax(0,1fr) auto!important}
+ #mainToolbar .r-tab-btn{font-size:8px!important;padding:0 3px!important}
+ #mainToolbar .ribbon-fixed-controls>.tool-btn{font-size:8px!important;padding:0 4px!important}
+ #mainToolbar .zoom-global-widget{padding:0 3px!important}
+ #mainToolbar .zoom-select-input{min-width:43px!important;font-size:9px!important}
+}

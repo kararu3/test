@@ -16,6 +16,15 @@
     <link rel="stylesheet" href="css/examy-next.css">
     <link rel="stylesheet" href="css/examy-ultimate.css">
     <link rel="stylesheet" href="css/completion-suite.css">
+    <script src="js/examy-startup-fix.js"></script>
+    <link rel="stylesheet" href="css/examy-stability-fix.css">
+    <link rel="stylesheet" href="css/examy-command-center.css">
+    <link rel="stylesheet" href="css/examy-polish-final.css">
+    <link rel="stylesheet" href="css/examy-night-studio.css">
+    <link rel="stylesheet" href="css/examy-key-motion.css">\n    <link rel="stylesheet" href="css/examy-ribbon-interaction.css">
+    <link rel="stylesheet" href="css/examy-cohesive-ui-patch.css">
+    <link rel="stylesheet" href="css/examy-feature-bridge.css">
+    <link rel="stylesheet" href="css/examy-final-polish.css">
 </head>
 <body class="pos-top">
 
@@ -727,7 +736,7 @@
             <div class="pro-form-body">
                 <label class="pro-input-label">مفتاح تفعيل النسخة المعتمدة:</label>
                 <div class="pro-input-wrapper">
-                    <input type="text" id="licenseKeyInput" placeholder="EXAM-XXXX-XXXX-XXXX" spellcheck="false" autocomplete="off">
+                    <input type="text" id="licenseKeyInput" placeholder="EXAM-D9P4-2B9A-OU3I-T8JK" maxlength="24" autocapitalize="characters" spellcheck="false" autocomplete="off">
                 </div>
                 <button class="pro-activate-btn" onclick="handleActivateBtn()">
                     <span>تأكيد التفعيل وربط الترخيص</span> <span>←</span>
@@ -842,6 +851,9 @@
                 <span class="toolbar-label">حجم الورق:</span>
                 <select id="previewPaperSizeSelect" onchange="handlePaperSizeChange(this.value)">
                     <option value="A4">A4</option>
+                    <option value="A3">A3</option>
+                    <option value="A5">A5</option>
+                    <option value="Letter">Letter</option>
                 </select>
                 <label id="previewBookletWrap" style="display:flex; align-items:center; gap:4px; cursor:pointer;">
                     <input type="checkbox" id="previewBookletToggle" onchange="handleBookletToggle(this.checked)">
@@ -1077,6 +1089,7 @@
                                     <option value="A4" selected>A4 (210 × 297 ملم)</option>
                                     <option value="A3">A3 (297 × 420 ملم)</option>
                                     <option value="Letter">Letter</option>
+                                    <option value="A5">A5 (148 × 210 ملم)</option>
                                 </select>
                             </div>
                             <div class="field-row" style="margin-top:16px;">
@@ -1236,5 +1249,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="js/ultimate-engine.js"></script>
     <script src="js/completion-suite.js"></script>
+<script src="js/examy-dropdown-guard.js"></script>
+<script src="js/examy-studio-controls.js"></script>\n<script src="js/examy-ribbon-interaction.js"></script>
+<script src="js/examy-feature-bridge.js"></script>
+    <script src="js/examy-adaptive-palette.js"></script>
 </body>
 </html>

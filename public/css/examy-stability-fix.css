@@ -1,0 +1,160 @@
+/* Examy PRO stability patch: theme, ribbon layout, light controls and print. */
+:root {
+  --ex-light-bg: #f3f6fc;
+  --ex-light-panel: #ffffff;
+  --ex-light-border: #d8e1ef;
+  --ex-light-text: #1e293b;
+  --ex-blue: #2563eb;
+  --ex-indigo: #4f46e5;
+}
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg-screen: #f1f5fb;
+  --toolbar-bg: #ffffff;
+  --card-surface: #ffffff;
+  --card-surface-elevated: #f8faff;
+  --card-surface-subtle: #eef3fb;
+  --card-border: #dce4f0;
+  --text-primary: #17233b;
+  --text-secondary: #40516d;
+  --text-muted: #687994;
+  --text-inverse: #ffffff;
+}
+html[data-theme="dark"] { color-scheme: dark; }
+
+/* Keep the ribbon in document flow: it remains at the top while scrolling,
+   but never covers the editor or the home workspace. */
+#mainToolbar.ribbon-toolbar-system {
+  position: sticky !important;
+  top: 0 !important;
+  inset-inline: auto !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  transform: none !important;
+  z-index: 5000 !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+.custom-titlebar { position: relative; z-index: 5001; }
+.ribbon-top-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  min-height: 48px !important;
+}
+.ribbon-tabs-nav {
+  display: flex !important;
+  flex: 1 1 560px !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+.ribbon-fixed-controls {
+  display: flex !important;
+  flex: 0 1 auto !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+.ribbon-panels-host { min-width: 0 !important; overflow: visible !important; }
+.ribbon-tab-panel.active { display: flex !important; flex-wrap: wrap !important; align-items: stretch !important; }
+.ribbon-tab-panel .r-group { min-width: 0 !important; max-width: 100% !important; }
+.ribbon-tab-panel .r-group-row { display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: 6px !important; }
+#appStage { position: relative !important; z-index: 1 !important; margin-top: 0 !important; }
+
+/* Distinct, readable light-mode buttons and controls. */
+html[data-theme="light"] button,
+html[data-theme="light"] .tool-btn,
+html[data-theme="light"] .p-act-btn,
+html[data-theme="light"] .panel-close-btn {
+  color: #263653 !important;
+  background: linear-gradient(180deg,#ffffff 0%,#edf2fb 100%) !important;
+  border: 1px solid #cbd7e8 !important;
+  box-shadow: 0 1px 2px rgba(24,45,85,.07) !important;
+}
+html[data-theme="light"] button:hover,
+html[data-theme="light"] .tool-btn:hover,
+html[data-theme="light"] .p-act-btn:hover {
+  color: #ffffff !important;
+  background: linear-gradient(135deg,#4f66df,#2563eb) !important;
+  border-color: #526be8 !important;
+  box-shadow: 0 5px 14px rgba(49,82,190,.2) !important;
+}
+html[data-theme="light"] button.active,
+html[data-theme="light"] .r-tab-btn.active,
+html[data-theme="light"] .segmented-btns button.active {
+  color: #ffffff !important;
+  background: linear-gradient(135deg,#5269e8,#4f46e5) !important;
+  border-color: #4f46e5 !important;
+}
+html[data-theme="light"] .btn-danger-act,
+html[data-theme="light"] button[style*="background:#dc2626"],
+html[data-theme="light"] button[style*="background: #dc2626"] {
+  color: #ffffff !important;
+  background: #dc3545 !important;
+  border-color: #c82333 !important;
+}
+html[data-theme="light"] input:not([type="color"]):not([type="checkbox"]):not([type="radio"]),
+html[data-theme="light"] select,
+html[data-theme="light"] textarea {
+  color: #1e293b !important;
+  background: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+}
+html[data-theme="light"] .r-group-title,
+html[data-theme="light"] .ribbon-toolbar-system,
+html[data-theme="light"] .ribbon-tab-panel { color: #263653 !important; }
+html[data-theme="light"] .ribbon-top-header,
+html[data-theme="light"] .ribbon-panels-host {
+  background: #ffffff !important;
+  border-color: #dce4f0 !important;
+}
+
+/* Print: preserve each physical sheet, use printer dialog page size and
+   avoid viewport clipping. The sheet's own padding is the content margin. */
+@media print {
+  @page { size: auto; margin: 0; }
+  html, body {
+    width: auto !important; height: auto !important;
+    min-height: 0 !important; overflow: visible !important;
+    margin: 0 !important; padding: 0 !important;
+    background: #fff !important; color: #000 !important;
+  }
+  #appStage, #sheetsWrapper {
+    width: auto !important; height: auto !important;
+    min-height: 0 !important; overflow: visible !important;
+    transform: none !important;
+  }
+  #sheetsWrapper { display: block !important; }
+  #sheetsWrapper .a4-sheet {
+    box-sizing: border-box !important;
+    break-after: page !important;
+    page-break-after: always !important;
+    break-inside: avoid-page !important;
+    page-break-inside: avoid !important;
+    max-width: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+  }
+  #sheetsWrapper .a4-sheet:last-child {
+    break-after: auto !important;
+    page-break-after: auto !important;
+  }
+  .question-container, table, tr, img {
+    break-inside: avoid-page;
+    page-break-inside: avoid;
+  }
+  thead { display: table-header-group; }
+  tfoot { display: table-footer-group; }
+}
+@media (max-width: 1100px) {
+  #mainToolbar.ribbon-toolbar-system { position: relative !important; }
+  .ribbon-top-header { align-items: stretch !important; }
+  .ribbon-tabs-nav, .ribbon-fixed-controls { flex: 1 1 100% !important; }
+}

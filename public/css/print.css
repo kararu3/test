@@ -155,3 +155,17 @@
         font-weight: bold !important;
     }
 }
+/* Driver-neutral print sizing: respect the selected printer paper size. */
+@media print {
+  @page { size: auto; margin: 0; }
+  html, body { height:auto !important; min-height:0 !important; overflow:visible !important; }
+  #appStage, #sheetsWrapper { height:auto !important; overflow:visible !important; transform:none !important; }
+  #sheetsWrapper .a4-sheet {
+    height:auto !important; min-height:0 !important; max-height:none !important;
+    break-after:page !important; page-break-after:always !important;
+    break-inside:avoid-page !important; page-break-inside:avoid !important;
+  }
+  #sheetsWrapper .a4-sheet:last-child { break-after:auto !important; page-break-after:auto !important; }
+  table, tr, .question-container, img { break-inside:avoid-page; page-break-inside:avoid; }
+  thead { display:table-header-group; } tfoot { display:table-footer-group; }
+}

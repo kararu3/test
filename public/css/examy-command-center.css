@@ -1,0 +1,364 @@
+/* Examy PRO — Command Center Ribbon v2
+   A complete visual re-architecture of the legacy ribbon without changing
+   its action IDs, data-tab keys, or existing command handlers. */
+:root {
+  --ex-ribbon-bg: #0b1220;
+  --ex-ribbon-panel: #111c30;
+  --ex-ribbon-card: #17243a;
+  --ex-ribbon-line: rgba(148,163,184,.17);
+  --ex-ribbon-text: #e7eefc;
+  --ex-ribbon-muted: #9aabc5;
+  --ex-ribbon-accent: #67e8f9;
+  --ex-ribbon-blue: #4f7cff;
+  --ex-ribbon-radius: 16px;
+}
+html[data-theme="light"] {
+  --ex-ribbon-bg: #f5f8ff;
+  --ex-ribbon-panel: #ffffff;
+  --ex-ribbon-card: #f4f7fd;
+  --ex-ribbon-line: #dce5f2;
+  --ex-ribbon-text: #1c2b45;
+  --ex-ribbon-muted: #64748b;
+  --ex-ribbon-accent: #2563eb;
+  --ex-ribbon-blue: #315fe8;
+}
+body.pos-top #mainToolbar,
+body.pos-left #mainToolbar,
+body.pos-right #mainToolbar,
+#mainToolbar.ribbon-toolbar-system {
+  position: sticky !important;
+  inset: auto !important;
+  top: 0 !important;
+  right: auto !important;
+  left: auto !important;
+  bottom: auto !important;
+  display: block !important;
+  float: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 12px clamp(12px,2vw,28px) 14px !important;
+  transform: none !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--ex-ribbon-line) !important;
+  border-radius: 0 0 22px 22px !important;
+  background:
+    radial-gradient(ellipse at 12% -45%,rgba(79,124,255,.24),transparent 48%),
+    linear-gradient(135deg,var(--ex-ribbon-bg),var(--ex-ribbon-panel)) !important;
+  color: var(--ex-ribbon-text) !important;
+  box-shadow: 0 14px 38px rgba(10,20,42,.16), inset 0 1px rgba(255,255,255,.05) !important;
+  box-sizing: border-box !important;
+  z-index: 9000 !important;
+  overflow: visible !important;
+  isolation: isolate !important;
+}
+#mainToolbar::before { content: none !important; }
+#mainToolbar .ribbon-top-header {
+  display: grid !important;
+  grid-template-columns: minmax(0,1fr) auto !important;
+  grid-template-areas: "tabs controls" !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100% !important;
+  min-height: 54px !important;
+  height: auto !important;
+  padding: 0 0 12px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--ex-ribbon-line) !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+}
+#mainToolbar .ribbon-tabs-nav {
+  grid-area: tabs !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  gap: 7px !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  height: auto !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(148,163,184,.35) transparent !important;
+  padding: 3px 2px 7px !important;
+}
+#mainToolbar .ribbon-tabs-nav::-webkit-scrollbar { height: 4px; }
+#mainToolbar .ribbon-tabs-nav::-webkit-scrollbar-thumb { background: rgba(148,163,184,.35); border-radius: 9px; }
+#mainToolbar .r-tab-btn {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  min-height: 42px !important;
+  height: 42px !important;
+  padding: 0 16px !important;
+  border: 1px solid transparent !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  color: var(--ex-ribbon-muted) !important;
+  font-family: inherit !important;
+  font-size: 12.5px !important;
+  font-weight: 850 !important;
+  letter-spacing: .05px !important;
+  white-space: nowrap !important;
+  box-shadow: none !important;
+  transition: background .18s ease,border-color .18s ease,color .18s ease,transform .18s ease !important;
+}
+#mainToolbar .r-tab-btn:hover {
+  color: var(--ex-ribbon-text) !important;
+  background: rgba(127,153,194,.12) !important;
+  border-color: var(--ex-ribbon-line) !important;
+  transform: translateY(-1px) !important;
+}
+#mainToolbar .r-tab-btn.active {
+  color: #fff !important;
+  background: linear-gradient(135deg,#4169ef,#7258e8) !important;
+  border-color: rgba(255,255,255,.17) !important;
+  box-shadow: 0 7px 18px rgba(65,105,239,.28),inset 0 1px rgba(255,255,255,.2) !important;
+}
+html[data-theme="light"] #mainToolbar .r-tab-btn.active { color:#fff !important; }
+#mainToolbar .ribbon-fixed-controls {
+  grid-area: controls !important;
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 8px !important;
+  min-width: max-content !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+#mainToolbar .ribbon-fixed-controls > button {
+  min-height: 39px !important;
+  border-radius: 11px !important;
+  padding: 0 13px !important;
+  font-size: 12px !important;
+  font-weight: 850 !important;
+}
+#mainToolbar .zoom-global-widget {
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  min-height: 39px !important;
+  padding: 0 10px !important;
+  border: 1px solid var(--ex-ribbon-line) !important;
+  border-radius: 11px !important;
+  background: rgba(127,153,194,.09) !important;
+  color: var(--ex-ribbon-muted) !important;
+}
+#mainToolbar .zoom-select-input {
+  min-width: 75px !important;
+  height: 30px !important;
+  border: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  color: var(--ex-ribbon-text) !important;
+  font-weight: 800 !important;
+}
+#mainToolbar .ribbon-panels-host {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 105px !important;
+  max-height: min(190px, 28vh) !important;
+  margin: 11px 0 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: var(--ex-ribbon-radius) !important;
+  background: var(--ex-ribbon-panel) !important;
+  box-shadow: inset 0 0 0 1px var(--ex-ribbon-line) !important;
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  scrollbar-width: thin !important;
+  scrollbar-color: rgba(148,163,184,.35) transparent !important;
+}
+#mainToolbar .ribbon-tab-panel {
+  display: none !important;
+  align-items: stretch !important;
+  flex-wrap: nowrap !important;
+  gap: 0 !important;
+  width: max-content !important;
+  min-width: 100% !important;
+  height: auto !important;
+  min-height: 105px !important;
+  max-height: min(190px, 28vh) !important;
+  padding: 10px 12px !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+#mainToolbar .ribbon-tab-panel.active { display: flex !important; }
+#mainToolbar .r-group {
+  display: flex !important;
+  flex: 0 0 auto !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: stretch !important;
+  gap: 9px !important;
+  min-width: 150px !important;
+  max-width: 360px !important;
+  padding: 7px 16px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  border-inline-start: 1px solid var(--ex-ribbon-line) !important;
+  background: transparent !important;
+  box-sizing: border-box !important;
+}
+#mainToolbar .r-group:first-child { border-inline-start: 0 !important; }
+#mainToolbar .r-group-title {
+  display: block !important;
+  position: static !important;
+  margin: 0 !important;
+  padding: 0 2px !important;
+  color: var(--ex-ribbon-muted) !important;
+  font-size: 10px !important;
+  line-height: 1.4 !important;
+  font-weight: 900 !important;
+  letter-spacing: .45px !important;
+  text-transform: uppercase !important;
+}
+#mainToolbar .r-group-row {
+  display: flex !important;
+  flex: 1 1 auto !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  align-content: center !important;
+  gap: 7px !important;
+  min-width: 0 !important;
+  overflow: visible !important;
+}
+#mainToolbar .r-sep { display: none !important; }
+#mainToolbar .tool-btn,
+#mainToolbar .r-group-row > button {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  min-height: 37px !important;
+  height: auto !important;
+  padding: 7px 11px !important;
+  border: 1px solid var(--ex-ribbon-line) !important;
+  border-radius: 10px !important;
+  background: var(--ex-ribbon-card) !important;
+  color: var(--ex-ribbon-text) !important;
+  box-shadow: 0 2px 5px rgba(0,0,0,.06) !important;
+  font-family: inherit !important;
+  font-size: 11.5px !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
+  white-space: nowrap !important;
+  cursor: pointer !important;
+  transition: transform .16s ease,background .16s ease,border-color .16s ease,box-shadow .16s ease !important;
+}
+#mainToolbar .tool-btn:hover,
+#mainToolbar .r-group-row > button:hover {
+  transform: translateY(-2px) !important;
+  border-color: rgba(91,139,255,.65) !important;
+  background: linear-gradient(135deg,rgba(79,124,255,.2),rgba(99,102,241,.15)) !important;
+  box-shadow: 0 7px 15px rgba(34,66,140,.13) !important;
+}
+#mainToolbar .tool-btn:active,
+#mainToolbar .r-group-row > button:active { transform: translateY(0) scale(.98) !important; }
+#mainToolbar .r-color-label,
+#mainToolbar .gap-controller-wrap {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  min-height: 36px !important;
+  padding: 5px 9px !important;
+  border: 1px solid var(--ex-ribbon-line) !important;
+  border-radius: 10px !important;
+  background: var(--ex-ribbon-card) !important;
+  color: var(--ex-ribbon-muted) !important;
+  box-sizing: border-box !important;
+}
+#mainToolbar input[type="color"] {
+  width: 25px !important;
+  height: 25px !important;
+  padding: 2px !important;
+  border: 1px solid var(--ex-ribbon-line) !important;
+  border-radius: 7px !important;
+  background: var(--ex-ribbon-panel) !important;
+  cursor: pointer !important;
+}
+#mainToolbar select,
+#mainToolbar input[type="number"] {
+  max-width: 150px !important;
+  min-height: 34px !important;
+  border: 1px solid var(--ex-ribbon-line) !important;
+  border-radius: 9px !important;
+  background: var(--ex-ribbon-card) !important;
+  color: var(--ex-ribbon-text) !important;
+  padding: 5px 9px !important;
+}
+#mainToolbar .segmented-btns {
+  display: inline-flex !important;
+  flex: 0 0 auto !important;
+  gap: 4px !important;
+  padding: 4px !important;
+  border: 1px solid var(--ex-ribbon-line) !important;
+  border-radius: 11px !important;
+  background: var(--ex-ribbon-card) !important;
+}
+#mainToolbar .segmented-btns button {
+  min-height: 31px !important;
+  padding: 4px 10px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: var(--ex-ribbon-muted) !important;
+  font-size: 10.5px !important;
+  font-weight: 850 !important;
+}
+#mainToolbar .segmented-btns button.active {
+  background: linear-gradient(135deg,#4169ef,#7258e8) !important;
+  color: #fff !important;
+}
+#mainToolbar #ribbonFontSizeDisplay,
+#mainToolbar .r-badge-disp {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 44px !important;
+  min-height: 31px !important;
+  border: 1px solid var(--ex-ribbon-line) !important;
+  border-radius: 8px !important;
+  background: var(--ex-ribbon-panel) !important;
+  color: var(--ex-ribbon-accent) !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+}
+#mainToolbar #tabBtnTableDesign[style*="display: none"] { display: none !important; }
+#mainToolbar #rtab-tableDesign .r-group { min-width: 190px !important; }
+#appStage {
+  position: relative !important;
+  z-index: 1 !important;
+  margin-top: 18px !important;
+  width: 100% !important;
+  clear: both !important;
+}
+.custom-titlebar { position: relative !important; z-index: 9001 !important; }
+@media (max-width: 1050px) {
+  #mainToolbar .ribbon-top-header {
+    grid-template-columns: minmax(0,1fr) !important;
+    grid-template-areas: "tabs" "controls" !important;
+  }
+  #mainToolbar .ribbon-fixed-controls { justify-content: flex-start !important; }
+}
+@media (max-width: 650px) {
+  #mainToolbar { padding: 8px !important; border-radius: 0 0 15px 15px !important; }
+  #mainToolbar .r-tab-btn { min-height: 38px !important; height: 38px !important; padding: 0 11px !important; }
+  #mainToolbar .ribbon-panels-host,
+  #mainToolbar .ribbon-tab-panel { min-height: 94px !important; }
+  #mainToolbar .r-group { min-width: 135px !important; padding: 5px 10px !important; }
+  #mainToolbar .r-group-row { gap: 5px !important; }
+  #mainToolbar .tool-btn { min-height: 34px !important; padding: 6px 8px !important; font-size: 10.5px !important; }
+}

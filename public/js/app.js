@@ -72,29 +72,17 @@ window.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
-        // معالجة حالة الترخيص بحيث تقبل الحروف الصغيرة والكبيرة وتعتمد وجود المفتاح
-        if (localLic && localLic.key && localLic.key.trim().length > 3) {
-            const licStatus = String(localLic.status || '').toUpperCase();
-            if (licStatus === "ACTIVE" || localLic.key.trim().length > 5) {
-                isLicenseValid = true;
-            } else {
-                try {
-                    if (typeof AppAPI !== 'undefined' && typeof AppAPI.verifyLicenseRemote === 'function') {
-                        const check = await AppAPI.verifyLicenseRemote(localLic.key, hwid);
-                        if (check && (check.valid === true || check.success === true)) {
-                            isLicenseValid = true;
-                        } else if (check && check.revoked === true) {
-                            isLicenseValid = false;
-                            localStorage.removeItem("exambuilder_license_data");
-                        } else {
-                            isLicenseValid = true; // استمرار العمل بالترخيص المحلي في حال عدم توفر إنترنت
-                        }
-                    } else {
-                        isLicenseValid = true;
-                    }
-                } catch (err) {
-                    isLicenseValid = true;
+        // المفتاح المحفوظ لا يمنح صلاحية محلية: يجب التحقق من حالته سحابياً عند كل تشغيل.
+        if (localLic && localLic.key && localLic.key.trim()) {
+            try {
+                const check = await AppAPI.verifyLicenseRemote(localLic.key.trim().toUpperCase(), hwid);
+                isLicenseValid = !!(check && (check.valid === true || check.success === true));
+                if (!isLicenseValid && check && [403, 404].includes(Number(check.status))) {
+                    localStorage.removeItem("exambuilder_license_data");
                 }
+            } catch (verifyError) {
+                isLicenseValid = false;
+                console.warn("تعذر التحقق السحابي من مفتاح Examy:", verifyError);
             }
         } else {
             isLicenseValid = false;
@@ -107,14 +95,34 @@ window.addEventListener('DOMContentLoaded', async () => {
             applyLanguageMode(savedLang);
         }
 
-        await updateLoadingProgress(70, "جاري قراءة تعريفات الطابعات والشبكة...", 90);
+        await updateLoadingProgress(70, "جاري تهيئة إعدادات الطابعات والشبكة...", 90);
+        // Printer discovery must never block application startup.
+        // Some Windows printer drivers / offline network printers can leave this promise pending.
         try {
             if (typeof loadSystemPrintersToSettings === 'function') {
-                await loadSystemPrintersToSettings();
+                await Promise.race([
+                    Promise.resolve().then(() => loadSystemPrintersToSettings()),
+                    new Promise(resolve => setTimeout(resolve, 2500))
+                ]);
             }
-        } catch (e) {}
+        } catch (printerStartupError) {
+            console.warn("تأجيل تحميل الطابعات إلى ما بعد فتح البرنامج:", printerStartupError);
+        }
 
-        await updateLoadingProgress(90, "استرجاع الإعدادات والقوالب...", 90);
+        await updateLoadingProgress(90, "جاري فتح واجهة البرنامج...", 90);
+
+        // Reveal the workspace before restoring optional/heavy user data.
+        // This prevents a large saved template or DOM operation from trapping
+        // the user on the 90% splash screen.
+        if (splashScreen) {
+            splashScreen.style.opacity = '0';
+            splashScreen.style.pointerEvents = 'none';
+            setTimeout(() => {
+                splashScreen.classList.remove("active");
+                splashScreen.style.display = "none";
+            }, 220);
+        }
+        await new Promise(resolve => setTimeout(resolve, 260));
         try { generateNewExamId(); } catch(e) {}
         try { updateUIIndicators(); } catch(e) {}
         try { applyBorderToAllSheets(); } catch(e) {}
@@ -161,7 +169,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         try {
             fetchSystemMonitorStats();
             setInterval(fetchSystemMonitorStats, 2500);
-            setInterval(autoSaveExamSession, 30000);
+            setInterval(autoSaveExamSession, 60000);
             setTimeout(() => {
                 if (typeof bindAllQuestionsInteractions === 'function') bindAllQuestionsInteractions();
             }, 500);
@@ -182,10 +190,9 @@ window.addEventListener('DOMContentLoaded', async () => {
                 splashScreen.classList.remove("active");
                 splashScreen.style.display = "none";
 
+                window.examyLicenseValid = isLicenseValid;
                 if (isLicenseValid) {
                     if (licenseModal) licenseModal.classList.remove("active");
-                    
-                    // لا تظهر نافذة اللغة إذا كان المستخدم قد اختار لغته مسبقاً
                     if (!localStorage.getItem('exambuilder_lang') && languageModal) {
                         languageModal.classList.add("active");
                     } else if (languageModal) {
@@ -261,27 +268,129 @@ window.dismissCrashModal = function() {
 document.addEventListener('DOMContentLoaded', () => {
     checkCrashRecovery();
 });
-// الحفظ التلقائي الفوري لبيانات العمل في localStorage
-window.triggerAutoSave = function() {
+// Intelligent AutoSave: wait until the user pauses, then save once.
+// A short idle debounce avoids writing localStorage for every keystroke.
+const EXAMY_AUTOSAVE_IDLE_MS = 1400;
+const EXAMY_AUTOSAVE_MAX_WAIT_MS = 12000;
+let examyAutoSaveIdleTimer = null;
+let examyAutoSaveMaxTimer = null;
+let examyAutoSaveDirty = false;
+let examyAutoSaveLastPayload = null;
+let examyAutoSaveStatusTimer = null;
+
+function getAutoSaveStatusElement() {
+    let el = document.getElementById('examyAutoSaveStatus');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'examyAutoSaveStatus';
+        el.className = 'examy-autosave-status';
+        el.setAttribute('role', 'status');
+        el.setAttribute('aria-live', 'polite');
+        el.textContent = 'جاهز للحفظ';
+        document.body.appendChild(el);
+    }
+    return el;
+}
+
+function setAutoSaveStatus(message, state = 'saved') {
+    const el = getAutoSaveStatusElement();
+    el.textContent = message;
+    el.dataset.state = state;
+    el.classList.add('visible');
+    clearTimeout(examyAutoSaveStatusTimer);
+    if (state === 'saved') {
+        examyAutoSaveStatusTimer = setTimeout(() => el.classList.remove('visible'), 2600);
+    }
+}
+
+function writeExamAutoSaveNow() {
+    const wrapper = document.getElementById('sheetsWrapper');
+    if (!wrapper) return false;
+    const payload = wrapper.innerHTML;
+    if (!payload || payload.trim().length <= 50) return false;
+    if (payload === examyAutoSaveLastPayload &&
+        localStorage.getItem('exambuilder_autosave_payload') === payload) {
+        examyAutoSaveDirty = false;
+        return true;
+    }
     try {
-        const sheetsWrapper = document.getElementById("sheetsWrapper");
-        if (sheetsWrapper && sheetsWrapper.innerHTML.trim().length > 50) {
-            localStorage.setItem('exambuilder_autosave_payload', sheetsWrapper.innerHTML);
-        }
+        // Save the document first; metadata is updated only after a successful write.
+        localStorage.setItem('exambuilder_autosave_payload', payload);
+        const uid = (typeof examUid !== 'undefined' && examUid) ? examUid : '';
+        if (uid) localStorage.setItem('exambuilder_autosave_uid', uid);
+        localStorage.setItem('exambuilder_autosave_saved_at', new Date().toISOString());
+        examyAutoSaveLastPayload = payload;
+        examyAutoSaveDirty = false;
+        setAutoSaveStatus('✓ تم حفظ المسودة تلقائياً', 'saved');
+        return true;
     } catch (err) {
-        console.error("AutoSave Error:", err);
+        console.error('AutoSave Error:', err);
+        setAutoSaveStatus('تعذر الحفظ — مساحة التخزين ممتلئة', 'error');
+        return false;
+    }
+}
+
+function clearAutoSaveTimers() {
+    clearTimeout(examyAutoSaveIdleTimer);
+    clearTimeout(examyAutoSaveMaxTimer);
+    examyAutoSaveIdleTimer = null;
+    examyAutoSaveMaxTimer = null;
+}
+
+window.flushExamAutoSave = function() {
+    clearAutoSaveTimers();
+    if (!examyAutoSaveDirty) return true;
+    return writeExamAutoSaveNow();
+};
+
+window.triggerAutoSave = function() {
+    const wrapper = document.getElementById('sheetsWrapper');
+    if (!wrapper) return;
+    examyAutoSaveDirty = true;
+    setAutoSaveStatus('تغييرات غير محفوظة…', 'pending');
+    clearTimeout(examyAutoSaveIdleTimer);
+    examyAutoSaveIdleTimer = setTimeout(() => window.flushExamAutoSave(), EXAMY_AUTOSAVE_IDLE_MS);
+    // Do not postpone forever during continuous typing or repeated edits.
+    if (!examyAutoSaveMaxTimer) {
+        examyAutoSaveMaxTimer = setTimeout(() => window.flushExamAutoSave(), EXAMY_AUTOSAVE_MAX_WAIT_MS);
     }
 };
 
-// تشغيل الحفظ التلقائي مع كل كتابة أو تعديل داخل مساحة العمل
-document.addEventListener('input', () => {
-    window.triggerAutoSave();
+// Text edits: schedule one save after 1.4 seconds of inactivity.
+document.addEventListener('input', (event) => {
+    if (event.target && event.target.closest && event.target.closest('#sheetsWrapper')) {
+        window.triggerAutoSave();
+    }
+}, true);
+
+// Structural edits (add/remove questions, tables, images) are caught without
+// treating every click or toolbar hover as a document change.
+document.addEventListener('DOMContentLoaded', () => {
+    const wrapper = document.getElementById('sheetsWrapper');
+    if (!wrapper || typeof MutationObserver === 'undefined') return;
+    let observerQueued = false;
+    const observer = new MutationObserver((mutations) => {
+        if (observerQueued || !mutations.some(m => m.type === 'childList' || m.type === 'characterData')) return;
+        observerQueued = true;
+        Promise.resolve().then(() => {
+            observerQueued = false;
+            window.triggerAutoSave();
+        });
+    });
+    observer.observe(wrapper, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['style', 'src', 'width', 'height', 'colspan', 'rowspan'] });
 });
 
-document.addEventListener('click', () => {
-    // حفظ تلقائي أيضاً عند أي تفاعل أو إضافة سؤال
-    window.triggerAutoSave();
+// Flush on leaving an edited field, switching tabs, minimizing, or closing.
+document.addEventListener('focusout', (event) => {
+    if (event.target && event.target.closest && event.target.closest('#sheetsWrapper')) {
+        if (examyAutoSaveDirty) setTimeout(() => window.flushExamAutoSave(), 120);
+    }
+}, true);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') window.flushExamAutoSave();
 });
+window.addEventListener('pagehide', () => window.flushExamAutoSave());
+window.addEventListener('beforeunload', () => window.flushExamAutoSave());
 
 function setupGlobalEnterLineBreakHandler() {
     document.addEventListener('keydown', (e) => {
@@ -1186,13 +1295,14 @@ function dismissSavedSessionBackup() {
     localStorage.removeItem("examy_session_backup");
 }
 
-// حفظ نسخة احتياطية دورية كل دقيقة
+// نسخة استرداد إضافية كل دقيقة، مستقلة عن الحفظ بعد التوقف عن الكتابة.
 setInterval(() => {
     const stage = document.getElementById("sheetsWrapper");
-    if (stage && stage.querySelectorAll(".question-container").length > 0) {
-        localStorage.setItem("examy_session_backup", stage.innerHTML);
+    if (stage && stage.querySelectorAll(".question-container").length > 0 && examyAutoSaveDirty) {
+        try { localStorage.setItem("examy_session_backup", stage.innerHTML); }
+        catch (e) { console.warn("تعذر تحديث نسخة الاسترداد:", e); }
     }
-}, 30000);
+}, 60000);
 
 // 3. جدول اختصارات الكيبورد الشاملة والموسعة
 document.addEventListener('keydown', (e) => {
@@ -1375,11 +1485,18 @@ async function handleActivateBtn() {
 
     if (!keyInput || !feedback) return;
     const key = keyInput.value.trim().toUpperCase();
+    keyInput.value = key;
 
     if (!key) {
         if (typeof SoundFX !== 'undefined') SoundFX.trash();
         feedback.style.color = "#ef4444";
         feedback.textContent = "يرجى كتابة أو لصق مفتاح التفعيل أولاً";
+        return;
+    }
+
+    if (!/^EXAM-[A-Z0-9]{4}(?:-[A-Z0-9]{4}){3}$/.test(key)) {
+        feedback.style.color = "#ef4444";
+        feedback.textContent = "صيغة المفتاح غير صحيحة. مثال: EXAM-D9P4-2B9A-OU3I-T8JK";
         return;
     }
 
@@ -1403,13 +1520,19 @@ async function handleActivateBtn() {
             };
 
             localStorage.setItem("exambuilder_license_data", JSON.stringify(licenseData));
+            window.examyLicenseValid = true;
             try {
                 if (AppAPI.saveLocalLicense) await AppAPI.saveLocalLicense(licenseData);
             } catch (localErr) {}
 
             setTimeout(() => {
-                document.getElementById("licenseModal").classList.remove("active");
-                document.getElementById("languageModal").classList.add("active");
+                document.getElementById("licenseModal")?.classList.remove("active");
+                window.examyLicenseValid = true;
+                if (!localStorage.getItem('exambuilder_lang')) {
+                    document.getElementById("languageModal")?.classList.add("active");
+                } else {
+                    document.getElementById("languageModal")?.classList.remove("active");
+                }
             }, 700);
 
         } else {
@@ -1696,15 +1819,16 @@ function setToolbarPosition(pos) {
 
 // 1. تصحيح الوضع اللوني وتغيير تفعيل الزر فوراً في الشريط العلوي ونافذة الإعدادات
 function setThemeMode(mode) {
+    if (mode !== 'light' && mode !== 'dark') mode = 'dark';
     document.documentElement.setAttribute("data-theme", mode);
-    localStorage.setItem('examy_theme_mode', mode);
-
-    // تحديث وتلوين الزر في الشريط العلوي وداخل نافذة الإعدادات معاً
+    document.documentElement.style.colorScheme = mode;
+    try { localStorage.setItem('examy_theme_mode', mode); } catch (e) {}
     document.querySelectorAll('.segmented-btns button').forEach(btn => {
-        const isTarget = btn.getAttribute('onclick')?.includes(`'${mode}'`);
-        btn.classList.toggle('active', !!isTarget);
+        const action = btn.getAttribute('onclick') || '';
+        const active = action.includes("'" + mode + "'");
+        btn.classList.toggle('active', active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
-
     if (typeof SoundFX !== 'undefined') SoundFX.click();
 }
 
@@ -3178,4 +3302,18 @@ function deleteRibbonSelectedTemplate() {
 // تحديث القائمة فور فتح التطبيق
 window.addEventListener('DOMContentLoaded', () => {
     setTimeout(syncRibbonTemplatesDropdown, 1200);
+});
+
+// EXAMY_KEY_INPUT_FORMATTER: format the license key as EXAM-XXXX-XXXX-XXXX-XXXX.
+document.addEventListener('DOMContentLoaded', () => {
+    const keyInput = document.getElementById('licenseKeyInput');
+    if (!keyInput || keyInput.dataset.examyFormatter === '1') return;
+    keyInput.dataset.examyFormatter = '1';
+    keyInput.addEventListener('input', () => {
+        let raw = keyInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (raw.startsWith('EXAM')) raw = raw.slice(4);
+        raw = raw.slice(0, 16);
+        const groups = raw.match(/.{1,4}/g) || [];
+        keyInput.value = 'EXAM-' + groups.join('-');
+    });
 });

@@ -26,9 +26,18 @@ app.use(express.json({ limit: '50mb' }));
 const PUBLIC_DIR = path.join(__dirname, 'public');
 app.use(express.static(PUBLIC_DIR));
 
-const DB_DIR = path.join(__dirname, 'database');
-if (!fs.existsSync(DB_DIR)) {
-    fs.mkdirSync(DB_DIR, { recursive: true });
+const SOURCE_DB_DIR = path.join(__dirname, 'database');
+const DB_DIR = path.resolve(process.env.EXAMY_DATA_DIR || SOURCE_DB_DIR);
+if (!fs.existsSync(DB_DIR)) fs.mkdirSync(DB_DIR, { recursive: true });
+// First launch in Electron: seed writable userData storage from bundled JSON defaults.
+if (DB_DIR !== SOURCE_DB_DIR) {
+    for (const name of ['bank_ar.json', 'bank_en.json', 'archive_ar.json', 'archive_en.json', 'lan_queue.json']) {
+        const target = path.join(DB_DIR, name);
+        const source = path.join(SOURCE_DB_DIR, name);
+        if (!fs.existsSync(target) && fs.existsSync(source)) {
+            try { fs.copyFileSync(source, target); } catch (e) { console.warn('تعذر تهيئة ملف بيانات:', name, e.message); }
+        }
+    }
 }
 
 const StorageEngine = {
@@ -64,14 +73,27 @@ const StorageEngine = {
         // Atomic write + rotating backup: لا يُستبدل ملف البيانات قبل اكتمال الكتابة.
         const safeName = path.basename(fileName);
         const filePath = path.join(DB_DIR, safeName);
-        const tempPath = filePath + '.tmp';
+        // Unique temporary file prevents collisions between simultaneous LAN writes.
+        const tempPath = filePath + '.' + process.pid + '.' + Date.now() + '.' + Math.random().toString(16).slice(2) + '.tmp';
         const backupPath = filePath + '.bak';
         const serialized = JSON.stringify(data, null, 2);
-        fs.writeFileSync(tempPath, serialized, { encoding: 'utf-8', flag: 'w' });
-        if (fs.existsSync(filePath)) {
-            try { fs.copyFileSync(filePath, backupPath); } catch (e) { console.error('تعذر إنشاء النسخة الاحتياطية:', e.message); }
+        try {
+            fs.writeFileSync(tempPath, serialized, { encoding: 'utf-8', flag: 'wx' });
+            if (fs.existsSync(filePath)) {
+                try {
+                    const current = fs.readFileSync(filePath, 'utf-8');
+                    JSON.parse(current); // Back up only a valid last-known-good JSON file.
+                    fs.writeFileSync(backupPath + '.tmp', current, { encoding: 'utf-8', flag: 'w' });
+                    fs.renameSync(backupPath + '.tmp', backupPath);
+                } catch (backupError) {
+                    console.error('تعذر تدوير نسخة البيانات الاحتياطية:', backupError.message);
+                }
+            }
+            fs.renameSync(tempPath, filePath);
+        } catch (writeError) {
+            try { if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath); } catch (_) {}
+            throw writeError;
         }
-        fs.renameSync(tempPath, filePath);
     }
 };
 
@@ -235,7 +257,8 @@ app.get('/api/exams/all', (req, res) => {
 });
 
 app.post('/api/exams/save', (req, res) => {
-    let archive = StorageEngine.read('archive_ar.json');
+    let archive = StorageEngine.read('archive_ar.json', []);
+    if (!Array.isArray(archive)) return res.status(500).json({ success: false, message: 'الأرشيف غير صالح' });
     const record = {
         id: req.body.exam_id || ("EX-" + Date.now()),
         title: req.body.title,
@@ -244,9 +267,11 @@ app.post('/api/exams/save', (req, res) => {
         htmlPayload: req.body.html_content,
         updatedAt: new Date().toISOString()
     };
-    archive.unshift(record);
+    const existingIndex = archive.findIndex(item => item && item.id === record.id);
+    if (existingIndex >= 0) archive[existingIndex] = record;
+    else archive.unshift(record);
     StorageEngine.write('archive_ar.json', archive);
-    res.json({ success: true });
+    res.json({ success: true, exam: record });
 });
 
 const server = app.listen(PORT, '0.0.0.0', () => {

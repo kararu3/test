@@ -1,0 +1,73 @@
+/* Examy PRO — Night Studio redesign v1 */
+:root{--studio-bg:#080e1b;--studio-panel:#101a2b;--studio-panel-2:#152238;--studio-card:#17263d;--studio-line:#293c58;--studio-text:#edf4ff;--studio-muted:#9aacc6;--studio-blue:#5b8cff;--studio-cyan:#42d8e8;--studio-violet:#9a7bff;--studio-good:#38c995;--studio-danger:#ff6682}
+html[data-theme="dark"] body{background:radial-gradient(ellipse at 12% 0%,rgba(50,91,170,.16),transparent 38%),radial-gradient(ellipse at 88% 18%,rgba(117,72,190,.12),transparent 32%),var(--studio-bg)!important;color:var(--studio-text)!important}
+html[data-theme="dark"] #appTitlebar,html[data-theme="dark"] .custom-titlebar{background:rgba(8,14,27,.94)!important;border-color:var(--studio-line)!important;color:var(--studio-text)!important}
+html[data-theme="dark"] #mainToolbar,html[data-theme="dark"] .ribbon-toolbar-system{background:linear-gradient(145deg,rgba(17,28,47,.98),rgba(11,19,33,.98))!important;border:1px solid rgba(108,143,195,.18)!important;border-top:0!important;box-shadow:0 16px 42px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.035)!important}
+html[data-theme="dark"] .ribbon-top-header,html[data-theme="dark"] .ribbon-panels-host{background:transparent!important;border-color:var(--studio-line)!important}
+html[data-theme="dark"] .r-tab-btn{color:#a9bad3!important;border:1px solid transparent!important}
+html[data-theme="dark"] .r-tab-btn:hover{background:#1a2b45!important;color:#fff!important}
+html[data-theme="dark"] .r-tab-btn.active{background:linear-gradient(120deg,#3976e8,#7958dc)!important;color:#fff!important;box-shadow:0 7px 20px rgba(67,112,228,.28)!important}
+html[data-theme="dark"] .r-group,html[data-theme="dark"] .settings-section-card,html[data-theme="dark"] .settings-sidebar-nav{background:linear-gradient(145deg,#14223a,#101b2e)!important;border:1px solid var(--studio-line)!important;box-shadow:0 8px 22px rgba(0,0,0,.12)!important}
+html[data-theme="dark"] .r-group-title,html[data-theme="dark"] .settings-card-title{color:#91a8ca!important}
+html[data-theme="dark"] .tool-btn,html[data-theme="dark"] .p-act-btn,html[data-theme="dark"] .b-btn,html[data-theme="dark"] .r-group-row>button{background:linear-gradient(145deg,#1b2d49,#15243a)!important;border:1px solid #304766!important;color:#e8f1ff!important;box-shadow:0 3px 9px rgba(0,0,0,.18)!important}
+html[data-theme="dark"] .tool-btn:hover,html[data-theme="dark"] .p-act-btn:hover,html[data-theme="dark"] .b-btn:hover{background:linear-gradient(120deg,#244879,#293a65)!important;border-color:#5b8cff!important;color:#fff!important}
+html[data-theme="dark"] .btn-add-q,html[data-theme="dark"] .btn-bank,html[data-theme="dark"] .btn-print,html[data-theme="dark"] .btn-preview,html[data-theme="dark"] .btn-settings{background:linear-gradient(120deg,#245fc6,#6349bd)!important;color:#fff!important;border-color:#668df5!important}
+html[data-theme="dark"] input:not([type=color]):not([type=checkbox]):not([type=radio]),html[data-theme="dark"] select,html[data-theme="dark"] textarea{background:#0d192b!important;color:#eaf2ff!important;border:1px solid #30435f!important;border-radius:9px!important}
+html[data-theme="dark"] input:focus,html[data-theme="dark"] select:focus,html[data-theme="dark"] textarea:focus{border-color:#6d9aff!important;box-shadow:0 0 0 3px rgba(91,140,255,.16)!important}
+html[data-theme="dark"] .doc-info-strip,html[data-theme="dark"] .bottom-action-bar,html[data-theme="dark"] .system-monitor-hud{background:rgba(16,27,45,.94)!important;border-color:var(--studio-line)!important;color:var(--studio-text)!important}
+html[data-theme="dark"] .modal-dialog,html[data-theme="dark"] .overlay-card,html[data-theme="dark"] .modal-content{background:#101c30!important;color:#eaf2ff!important;border:1px solid #30445f!important;box-shadow:0 28px 90px rgba(0,0,0,.55)!important}
+html[data-theme="dark"] .dialog-top{background:#0c1728!important;border-color:#2a3d58!important;color:#f1f6ff!important}
+html[data-theme="dark"] .dropdown-content-pane,html[data-theme="dark"] .dropdown-content-pane.floating-dropdown{background:linear-gradient(145deg,#14243b,#0d192b)!important;color:#eaf2ff!important;border:1px solid #3b5476!important;box-shadow:0 24px 60px rgba(0,0,0,.52)!important}
+html[data-theme="dark"] .dropdown-content-pane button,html[data-theme="dark"] .dropdown-content-pane a{color:#dce9ff!important}
+html[data-theme="dark"] .dropdown-content-pane button:hover,html[data-theme="dark"] .dropdown-content-pane a:hover{background:#243b5d!important;color:#fff!important}
+html[data-theme="dark"] .floating-text-toolbar{background:rgba(13,25,43,.97)!important;border:1px solid #46638b!important;box-shadow:0 16px 42px rgba(0,0,0,.48)!important;border-radius:13px!important;backdrop-filter:blur(18px)!important}
+html[data-theme="dark"] .floating-text-toolbar button{background:#1a2c47!important;color:#eaf2ff!important;border:1px solid #344d70!important;border-radius:8px!important}
+html[data-theme="dark"] .floating-text-toolbar button:hover{background:#31558a!important}
+#inlineTextFormatter{max-width:min(760px,calc(100vw - 20px))!important;flex-wrap:wrap!important;gap:5px!important;padding:8px!important}
+.examy-format-extra{display:inline-flex;align-items:center;gap:4px;padding-inline:5px;border-inline-start:1px solid var(--studio-line)}
+.examy-format-extra button,.examy-preview-side button{border:1px solid var(--studio-line);border-radius:8px;padding:6px 9px;background:var(--studio-panel-2);color:var(--studio-text);font-family:inherit;font-size:11px;font-weight:700;cursor:pointer}
+.examy-format-extra button:hover,.examy-preview-side button:hover{border-color:var(--studio-blue);filter:brightness(1.18)}
+.examy-layout-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.examy-layout-controls .field{display:flex;align-items:center;gap:5px;padding:5px 8px;border:1px solid var(--studio-line);border-radius:9px;background:var(--studio-panel-2);color:var(--studio-text);font-size:11px}
+.examy-layout-controls input[type=number]{width:66px!important;min-width:54px!important}
+.examy-layout-controls select{min-width:100px}
+.examy-ruler-toggle{border:1px solid var(--studio-line)!important;border-radius:8px!important;padding:6px 10px!important;background:var(--studio-panel-2)!important;color:var(--studio-text)!important}
+.examy-preview-side{position:absolute;inset-block:0;inset-inline-start:0;width:250px;z-index:5;display:flex;flex-direction:column;gap:12px;padding:16px 13px;background:linear-gradient(180deg,#111f35,#0b1526);border-inline-end:1px solid #30445f;box-shadow:12px 0 36px rgba(0,0,0,.22);overflow:auto;color:#eef4ff}
+.examy-preview-brand{display:flex;align-items:center;gap:8px;padding:7px 6px 14px;border-bottom:1px solid #30445f;font-weight:900}
+.examy-preview-brand .animated-brand-title{font-size:20px}
+.examy-preview-section{display:flex;flex-direction:column;gap:7px;padding:10px;border:1px solid #2b405e;border-radius:12px;background:rgba(255,255,255,.035)}
+.examy-preview-section strong{font-size:11px;color:#93b5ee}
+.examy-preview-side button{width:100%;text-align:right;min-height:34px}
+.examy-preview-side select,.examy-preview-side input{width:100%;min-height:32px;border:1px solid #304766;border-radius:8px;background:#0b1729;color:#eff6ff;padding:5px}
+#printPreviewModal{padding-inline-start:250px!important}
+#printPreviewModal .preview-top-toolbar{display:none!important}
+#printPreviewModal .preview-viewport-scroll{width:100%;height:100%;max-height:100%;padding:18px!important}
+#printPreviewModal .examy-preview-side{display:flex!important}
+#printPreviewModal .preview-viewport-scroll #previewPagesHost{margin-inline:auto}
+#settingsModal .modal-dialog.modal-settings-pro{background:linear-gradient(145deg,#111e32,#0c1728)!important;border:1px solid #385274!important}
+#settingsModal .dialog-top{background:linear-gradient(110deg,#14243d,#0d192b)!important}
+#settingsModal .settings-body-layout{gap:12px!important}
+#settingsModal .settings-sidebar-nav{background:#0b1728!important;border-color:#304766!important}
+#settingsModal .s-tab-btn{color:#a9bbd4!important}
+#settingsModal .s-tab-btn.active{background:linear-gradient(120deg,#3976e8,#7958dc)!important}
+#settingsModal .field-row{background:#13233a!important;border-color:#2b405d!important}
+#settingsModal .settings-section-card{background:#101e32!important}
+html[data-theme="dark"] .a4-sheet{box-shadow:0 24px 65px rgba(0,0,0,.45),0 0 0 1px rgba(130,160,205,.18)!important}
+html[data-theme="dark"] .question-container{border-color:#d5deea}
+.examy-ai-panel{display:grid;gap:12px}
+.examy-ai-panel textarea{min-height:125px}
+.examy-ai-status{font-size:12px;color:var(--studio-muted);min-height:18px}
+.examy-ai-result{white-space:pre-wrap;max-height:300px;overflow:auto;padding:12px;border-radius:10px;background:rgba(80,120,190,.1);border:1px solid var(--studio-line);line-height:1.8}
+.a4-sheet[data-paper-size="A3"]{--a4-w:1123px;--a4-h:1587px;width:1123px!important;height:1587px!important}
+.a4-sheet[data-paper-size="Letter"]{--a4-w:816px;--a4-h:1056px;width:816px!important;height:1056px!important}
+.a4-sheet[data-paper-size="A5"]{--a4-w:559px;--a4-h:794px;width:559px!important;height:794px!important}
+.a4-sheet[data-paper-size="A4"]{--a4-w:794px;--a4-h:1123px;width:794px!important;height:1123px!important}
+@media(max-width:850px){.examy-preview-side{width:205px}#printPreviewModal{padding-inline-start:205px!important}}
+@media(max-width:620px){.examy-preview-side{width:175px;padding:9px}#printPreviewModal{padding-inline-start:175px!important}}
+
+/* Quiet autosave status — visible only while pending or briefly after success */
+.examy-autosave-status{position:fixed;inset-inline-end:18px;bottom:14px;z-index:99990;display:flex;align-items:center;gap:7px;padding:7px 12px;border-radius:999px;background:rgba(16,29,49,.94);border:1px solid rgba(95,135,190,.35);color:#dbeafe;font:600 11px/1.4 inherit;box-shadow:0 8px 24px rgba(0,0,0,.18);opacity:0;transform:translateY(7px);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
+.examy-autosave-status.visible{opacity:1;transform:translateY(0)}
+.examy-autosave-status[data-state="pending"]{border-color:#d5a43b;color:#ffdf91}
+.examy-autosave-status[data-state="error"]{border-color:#ed6678;color:#ffb8c1}
+html:not([data-theme="dark"]) .examy-autosave-status{background:rgba(255,255,255,.96);color:#334155;border-color:#cbd5e1}
