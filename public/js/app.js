@@ -49,6 +49,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     let isLicenseValid = false;
+    let isUserAuthenticated = false;
 
     try {
         await updateLoadingProgress(20, "جاري تهيئة النواة وبصمة الجهاز...", 90);
@@ -59,7 +60,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         // فحص حساب المستخدم أولاً عبر نظام المشتركين الموجود على خادم الإدارة.
         // عند تفعيل Remember Me تُستعاد بياناته المشفرة ثم يعاد التحقق منها سحابياً.
         await updateLoadingProgress(34, "جاري التحقق من حساب المستخدم...", 90);
-        let isUserAuthenticated = false;
         try {
             if (window.ExamyAuth && typeof window.ExamyAuth.restore === 'function') {
                 isUserAuthenticated = await window.ExamyAuth.restore(hwid);
