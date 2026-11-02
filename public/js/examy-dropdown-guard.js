@@ -25,6 +25,25 @@
    Object.assign(pane.style,{left:Math.round(left)+'px',right:'auto',top:Math.round(top)+'px',visibility:'visible'});
   });
  }
+ function polishSettings(){
+  const dialog=document.querySelector('#settingsModal .modal-dialog');
+  if(dialog){
+   dialog.style.maxWidth='min(1120px,96vw)';
+   dialog.style.maxHeight='min(88vh,900px)';
+   dialog.style.overflow='hidden';
+  }
+  document.querySelectorAll('#settingsModal .field-row').forEach(row=>{
+   const label=row.querySelector('label');
+   if(label&&label.textContent.includes('موضع شريط الأدوات'))row.style.display='none';
+  });
+  document.querySelectorAll('#settingsModal .settings-section-card').forEach(card=>card.classList.add('ex-settings-card-polished'));
+ }
+ document.addEventListener('DOMContentLoaded',polishSettings);
+ const settingsObserver=new MutationObserver(()=>polishSettings());
+ document.addEventListener('DOMContentLoaded',()=>{
+  const modal=document.getElementById('settingsModal');
+  if(modal)settingsObserver.observe(modal,{attributes:true,subtree:true,attributeFilter:['class','style']});
+ });
  window.addEventListener('resize',()=>{
   document.querySelectorAll('.dropdown-content-pane.active.floating-dropdown').forEach(p=>{
    const r=p.getBoundingClientRect(),m=14;
