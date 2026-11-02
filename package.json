@@ -1,0 +1,48 @@
+{
+  "name": "exambuilder-pro",
+  "version": "2.6.0",
+  "description": "نظام تصميم وطباعة الاختبارات المدرسية والوزارية المعتمد",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win --x64"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "electron": "^45.2.1",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.examy.pro",
+    "productName": "Examy PRO",
+    "win": {
+      "icon": "public/icon.png",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "include": "installer.nsh",
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "uninstallDisplayName": "Examy PRO",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Examy PRO",
+      "perMachine": false
+    },
+    "fileAssociations": [
+      {
+        "ext": "exam",
+        "name": "Examy Exam Document",
+        "description": "Examy PRO Exam File",
+        "icon": "public/icon.png",
+        "role": "Editor"
+      }
+    ]
+  }
+}

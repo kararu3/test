@@ -1,0 +1,47 @@
+[
+  {
+    "id": "Q-1931",
+    "title": "ماذا هي صيغة السؤال",
+    "content": "\n            <div class=\"point-cell\">\n                <span class=\"pt-num\">١-</span>\n                <span class=\"pt-txt\" contenteditable=\"true\" spellcheck=\"false\">................................</span>\n            </div>\n        \n            <div class=\"point-cell\">\n                <span class=\"pt-num\">٢-</span>\n                <span class=\"pt-txt\" contenteditable=\"true\" spellcheck=\"false\">................................</span>\n            </div>\n        ",
+    "type": "text",
+    "category": "محفوظ",
+    "createdAt": "2026-10-21T20:34:12.719Z"
+  },
+  {
+    "id": "Q-7342",
+    "title": "jkfsxgvhjdxyjhvghsxdkxfcgh",
+    "content": "<div class=\"point-cell\"><span class=\"pt-num\">١-</span><span class=\"pt-txt\" contenteditable=\"true\" spellcheck=\"false\">الإثبات</span></div><div class=\"point-cell\"><span class=\"pt-num\">٢-</span><span class=\"pt-txt\" contenteditable=\"true\" spellcheck=\"false\">المعادلة الكيميائية</span></div><div class=\"point-cell\"><span class=\"pt-num\">٣-</span><span class=\"pt-txt\" contenteditable=\"true\" spellcheck=\"false\">التكاثر الخضري</span></div><div class=\"point-cell\"><span class=\"pt-num\">٤-</span><span class=\"pt-txt\" contenteditable=\"true\" spellcheck=\"false\">الصبيوان</span></div><div class=\"point-cell\"><span class=\"pt-num\">٥-</span><span class=\"pt-txt\" contenteditable=\"true\" spellcheck=\"false\">غاز ثنائي اوكسيد&nbsp;<br></span></div><div class=\"point-cell\"><span class=\"pt-num\">٦-</span><span class=\"pt-txt\" contenteditable=\"true\" spellcheck=\"false\">البذرة</span></div><div class=\"point-cell\"><span class=\"pt-num\">٧-</span><span class=\"pt-txt\" contenteditable=\"true\" spellcheck=\"false\">جرائم البعث</span></div>",
+    "type": "grid4",
+    "category": "محفوظ",
+    "createdAt": "2026-10-21T19:50:49.097Z"
+  },
+  {
+    "id": "BK-AR-1",
+    "title": "س1/ ما المقصود بالمفردات التالية لخمس مما يأتي:",
+    "type": "grid4",
+    "category": "تعاريف",
+    "items": [
+      "١- الإثبات",
+      "٢- المعادلة الكيميائية",
+      "٣- التكاثر الخضري",
+      "٤- الصبيوان",
+      "٥- غاز ثنائي اوكسيد الكاربون",
+      "٦- البذرة",
+      "٧- الشبكية"
+    ]
+  },
+  {
+    "id": "BK-AR-2",
+    "title": "س2/ أجب عن فرعين فقط (لكل فرع ١٠ درجات):",
+    "type": "text",
+    "category": "فروع",
+    "content": "أ/ ما خطوات تفكير النباتات بالتركيب ؟\n\nب/ ارسم مع التأشير براعم التذوق في اللسان\n\nج/ وضح بمخطط اجزاء الجهاز الهيكلي"
+  },
+  {
+    "id": "BK-AR-3",
+    "title": "س3/ املأ الفراغات التالية لخمس مما يأتي:",
+    "type": "text",
+    "category": "فراغات",
+    "content": "١- تقع المواد الناتجة على ..................................... السهم\n٢- ..................................... هي جزء الجنين الذي ينمو فيها بعد ليكون الساق\n٣- نبات ..................................... يستخدم طبيعيا في علاج الامراض"
+  }
+]

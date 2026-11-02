@@ -1,0 +1,157 @@
+/* إعدادات الطباعة الدقيقة والصحيحة */
+@media print {
+    @page { 
+        size: A4 portrait;
+        margin: 0mm !important; 
+    }
+
+    body::before, body::after {
+        display: none !important;
+        content: none !important;
+        height: 0 !important;
+    }
+
+    html, body { 
+        background: #ffffff !important; 
+        color: #000000 !important;
+        margin: 0 !important; 
+        padding: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        overflow: hidden !important;
+    }
+
+    /* إخفاء عناصر التحكم، الأشرطة، الأزرار ومقابض الجداول أثناء الطباعة والتصدير */
+    .ribbon-toolbar-system,
+    #crashRecoveryBanner,
+    #mainToolbar,
+    .custom-titlebar,
+    .app-toolbar, 
+    .bottom-action-bar,
+    .fullscreen-overlay, 
+    .modal-backdrop, 
+    .preview-backdrop,
+    .question-side-panel,
+    .floating-text-toolbar,
+    .del-note-btn, 
+    .drag-move-handle, 
+    .img-controls, 
+    .img-resize-handle,
+    .table-drag-handle,
+    .table-resize-handle,
+    .branch-del-btn,
+    .add-branch-inline-btn,
+    .page-break-indicator,
+    .doc-info-strip,
+    .hdr-action-bar,
+
+    #appStage { 
+        margin: 0 !important; 
+        padding: 0 !important; 
+        width: 100% !important;
+        display: block !important;
+    }
+
+    /* الوضع العادي (طباعة أوراق فردية) */
+    body:not(.print-booklet-active) #sheetsWrapper { 
+        transform: none !important;
+        padding: 0 !important; 
+        margin: 0 !important;
+        gap: 0 !important; 
+        display: block !important; 
+    }
+
+    body:not(.print-booklet-active) .a4-sheet {
+        width: 100% !important; 
+        height: 100% !important; 
+        max-width: none !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: 15mm !important; /* هوامش المحتوى الداخلية للورقة */
+        box-shadow: none !important; 
+        page-break-after: always !important;
+        page-break-inside: avoid !important;
+        box-sizing: border-box !important;
+    }
+
+    /* ================= وضع طباعة الدفتر الامتحاني A3 (وجه وظهر متجاور بدون تصغير مشوه) ================= */
+    body.print-booklet-active {
+        width: 100% !important;
+    }
+
+    body.print-booklet-active #sheetsWrapper {
+        display: none !important;
+    }
+
+    body.print-booklet-active #printPreviewModal {
+        display: block !important;
+        position: static !important;
+        background: transparent !important;
+    }
+
+    body.print-booklet-active .preview-top-toolbar {
+        display: none !important;
+    }
+
+    body.print-booklet-active .preview-viewport-scroll {
+        overflow: visible !important;
+        padding: 0 !important;
+        background: transparent !important;
+        display: block !important;
+    }
+
+    body.print-booklet-active #previewPagesHost {
+        transform: none !important;
+        gap: 0 !important;
+        display: block !important;
+    }
+
+    body.print-booklet-active .booklet-sheet-side-label {
+        display: none !important;
+    }
+
+    body.print-booklet-active .booklet-a3-sheet {
+        width: 100vw !important;
+        height: 100vh !important;
+        box-shadow: none !important;
+        page-break-after: always !important;
+        page-break-inside: avoid !important;
+        margin: 0 !important;
+        display: flex !important;
+        flex-direction: row !important;
+    }
+
+    body.print-booklet-active .booklet-half-page {
+        width: 50% !important;
+        height: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-sizing: border-box !important;
+    }
+
+    body.print-booklet-active .booklet-half-page .a4-sheet {
+        width: 100% !important;
+        height: 100% !important;
+        transform: none !important;
+        box-shadow: none !important;
+        margin: 0 !important;
+        display: block !important;
+    }
+
+    .sheet-frame-box {
+        box-sizing: border-box !important;
+    }
+
+    .question-container { 
+        margin-bottom: 12px !important; 
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    .branch-grade-input {
+        border: none !important;
+        background: transparent !important;
+        font-weight: bold !important;
+    }
+}

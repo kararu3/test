@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Examy PRO NEXT STUDIO | صانع الاختبارات الاحترافي</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@600;700;800&family=Nunito:wght@600;700;800&family=Roboto:wght@400;700&family=Tajawal:wght@500;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@600;700;800;900&family=Noto+Naskh+Arabic:wght@400;700&family=Noto+Kufi+Arabic:wght@600;800&family=Tajawal:wght@500;700;800;900&family=Almarai:wght@700;800&family=Lateef:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/print.css">
+    <link rel="stylesheet" href="css/ui-effects.css">
+    <link rel="stylesheet" href="css/examy-next.css">
+    <link rel="stylesheet" href="css/examy-ultimate.css">
+    <link rel="stylesheet" href="css/completion-suite.css">
+</head>
+<body class="pos-top">
+
+    <!-- مدخلات الملفات المفقودة لمنع أخطاء الجافاسكريبت -->
+    <input type="file" id="imgUpload" accept="image/*" style="display:none;" onchange="insertFloatingImage(event)">
+    <input type="file" id="stickerUpload" accept="image/*" style="display:none;" onchange="insertFloatingImage(event)">
+    <input type="file" id="bgImageUpload" accept="image/*" style="display:none;" onchange="handleSheetBgImageUpload(event)">
+    <input type="file" id="examFileInput" accept=".exam" style="display:none;" onchange="handleImportExamFile(event)">
+    <input type="file" id="importExamFileInput" accept=".exam" style="display:none;" onchange="handleImportExamFile(event)">
+
+  <!-- شاشة الإقلاع والتحميل المعتمدة بطبقة ظهور قاهرة -->
+    <div id="appLoadingScreen" class="splash-screen-overlay active">
+        <div class="splash-content-card">
+            <div class="splash-logo-wrap">
+                <div class="splash-shield-glow">🛡️</div>
+                <div class="splash-rings"></div>
+            </div>
+            <div class="splash-brand-info">
+                <h1 class="splash-title">Examy <span class="splash-pro-badge">PRO</span></h1>
+                <p class="splash-subtitle">نظام تصميم وطباعة الاختبارات المدرسية والوزارية</p>
+            </div>
+            <div class="splash-progress-container">
+                <div class="splash-progress-info">
+                    <span id="loadingStepLabel" class="loading-step-label">جاري تهيئة بيئة النظام...</span>
+                    <span id="loadingPercentLabel" class="loading-percent-label">0%</span>
+                </div>
+                <div class="splash-progress-track">
+                    <div id="loadingProgressBar" class="splash-progress-fill"></div>
+                </div>
+            </div>
+            <div class="splash-footer-info"><span>الإصدار 3.0 NEXT STUDIO © 2026</span></div>
+        </div>
+    </div>
+
+    <!-- شريط العنوان المخصص للنافذة -->
+    <div id="appTitlebar" class="custom-titlebar">
+        <div class="titlebar-brand">
+            <span class="brand-sparkle">✦</span>
+            <span class="animated-brand-title">Examy <span class="brand-pro-pill">PRO</span></span>
+            <span class="brand-sub">صانع الاختبارات الذكي</span>
+        </div>
+    </div>
+
+    <!-- شريط تنسيق النصوص السريع العائم المطور مع ميزة تظليل النص -->
+    <div id="inlineTextFormatter" class="floating-text-toolbar">
+        <button type="button" onmousedown="applyInlineFormat(event, 'bold')" title="عريض"><b>B</b></button>
+        <button type="button" onmousedown="applyInlineFormat(event, 'italic')" title="مائل"><i>I</i></button>
+        <button type="button" onmousedown="applyInlineFormat(event, 'underline')" title="تسطير"><u>U</u></button>
+        <span class="toolbar-sep"></span>
+
+        <span class="toolbar-sep"></span>
+<!-- أزرار تباعد الأسطر (Line Spacing) -->
+<button type="button" class="tool-btn" onclick="adjustLineHeight(-0.1)" title="تقليل تباعد الأسطر">⫸⫷ سطر</button>
+<button type="button" class="tool-btn" onclick="adjustLineHeight(0.1)" title="زيادة تباعد الأسطر">⫷⫸ سطر</button>
+        
+        <!-- أزرار المحاذاة المباشرة -->
+        <button type="button" onmousedown="applyInlineFormat(event, 'justifyRight')" title="محاذاة لليمين">➡️</button>
+        <button type="button" onmousedown="applyInlineFormat(event, 'justifyCenter')" title="توسيط النص">↔️</button>
+        <button type="button" onmousedown="applyInlineFormat(event, 'justifyLeft')" title="محاذاة لليسار">⬅️</button>
+        <span class="toolbar-sep"></span>
+        
+        <!-- حجم الخط -->
+        <button type="button" class="tool-btn" onclick="stepFontSize(event, -1)" title="تصغير الخط">A-</button>
+        <span id="fontSizeBadgeDisplay" style="font-size:11.5px; font-weight:800; color:#38bdf8; min-width:38px; text-align:center; font-family:monospace;">12pt</span>
+        <button type="button" class="tool-btn" onclick="stepFontSize(event, 1)" title="تكبير الخط">A+</button>
+        <span class="toolbar-sep"></span>
+
+        <!-- لون الخط الأساسي -->
+        <label title="لون الخط" style="display:flex; align-items:center; cursor:pointer;">
+            <span style="font-size:11px; font-weight:900; color:#cbd5e1; margin-inline-end:3px;">A</span>
+            <input type="color" id="inlineTextColor" style="width:22px; height:22px; padding:0; border:none; background:transparent; cursor:pointer;" onchange="applyInlineColor(this.value)">
+        </label>
+        <span class="toolbar-sep"></span>
+
+        <!-- ميزة تظليل النص (Highlight Tool) مع دروب داون الألوان -->
+        <div class="highlight-picker-wrap" style="position:relative; display:inline-flex; align-items:center;">
+            <button type="button" class="tool-btn" id="btnHighlightTrigger" onclick="toggleHighlightPalette(event)" title="تظليل النص (ماركر)">
+                🖍️ <span id="currentHighlightIndicator" style="display:inline-block; width:10px; height:10px; border-radius:2px; background:#fef08a; border:1px solid #ca8a04;"></span>
+            </button>
+
+            <!-- لوحة اختيار ألوان التظليل السريعة -->
+            <div id="highlightColorPalette" class="highlight-palette-pop" style="display:none;">
+                <span class="hl-swatch" style="background:#fef08a;" onclick="applyTextHighlight('#fef08a')" title="أصفر فسفوري"></span>
+                <span class="hl-swatch" style="background:#bbf7d0;" onclick="applyTextHighlight('#bbf7d0')" title="أخضر فاتح"></span>
+                <span class="hl-swatch" style="background:#bae6fd;" onclick="applyTextHighlight('#bae6fd')" title="سماوي فاتح"></span>
+                <span class="hl-swatch" style="background:#fbcfe8;" onclick="applyTextHighlight('#fbcfe8')" title="وردي"></span>
+                <span class="hl-swatch" style="background:#fed7aa;" onclick="applyTextHighlight('#fed7aa')" title="برتقالي"></span>
+                <span class="hl-swatch" style="background:#ddd6fe;" onclick="applyTextHighlight('#ddd6fe')" title="بنفسجي"></span>
+                <!-- مدخل لون تظليل مخصص -->
+                <input type="color" id="customHighlightInput" title="لون تظليل مخصص" onchange="applyTextHighlight(this.value)">
+                <!-- زر إلغاء التظليل -->
+                <button type="button" class="hl-remove-btn" onclick="applyTextHighlight('transparent')" title="إزالة التظليل">🚫 إزالة</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- لوحة البحث والاستبدال الشامل -->
+<div id="findReplacePane" class="find-replace-pane" aria-hidden="true">
+            <input type="text" id="findInput" placeholder="بحث عن كلمة...">
+        <input type="text" id="replaceInput" placeholder="استبدال بـ...">
+        <button type="button" class="tool-btn" onclick="FindReplace.findAll()">بحث</button>
+        <button type="button" class="tool-btn" onclick="FindReplace.next(-1)">السابق</button>
+        <button type="button" class="tool-btn" onclick="FindReplace.next(1)">التالي</button>
+        <button type="button" class="tool-btn" onclick="FindReplace.executeReplaceAll()">استبدال الكل</button>
+        <output id="findReplaceStatus" aria-live="polite"></output>
+        <button type="button" class="tool-btn" onclick="FindReplace.toggle()" aria-label="إغلاق البحث">✖</button>
+    </div>
+
+    <!-- لوحة التحكم الجانبية للسؤال -->
+    <aside id="questionSidePanel" class="question-side-panel">
+        <div class="panel-header">
+            <div class="panel-title">
+                <span class="panel-badge-q" id="sidePanelQNum">سؤال</span>
+                <strong>أدوات التحكم</strong>
+            </div>
+            <button class="panel-close-btn" onclick="deactivateCurrentQuestion()" title="إغلاق اللوحة">✖</button>
+        </div>
+        
+        <div class="panel-actions-grid">
+            <button class="p-act-btn" onclick="panelMoveQuestion(-1)" title="تحريك للأعلى"><span>⬆️</span> تقديم للأعلى</button>
+            <button class="p-act-btn" onclick="panelMoveQuestion(1)" title="تحريك للأسفل"><span>⬇️</span> تأخير للأسفل</button>
+            <button class="p-act-btn" onclick="panelMoveToNextSheet()" title="نقل لصفحة تالية"><span>📄</span> لصفحة تالية</button>
+            <button class="p-act-btn" onclick="AdvancedExamTools.autoDistributeBranchGrades(activeQuestionCard)" title="توزيع الدرجة الكلية بالتساوي على الفروع"><span>⚖️</span> توزيع الدرجات آلياً</button>
+            <button class="p-act-btn" onclick="AdvancedExamTools.toggleTwoColumnSplit(activeQuestionCard)" title="تقسيم مساحة السؤال إلى عمودين متجاورين"><span>🔀</span> تقسيم لعمودين</button>
+            <button class="p-act-btn" onclick="panelOpenShapeModal()" title="تخصيص الشكل"><span>🎨</span> تخصيص النمط</button>
+            <button class="p-act-btn" onclick="panelTriggerSticker()" title="إدراج صورة"><span>🏷️</span> إدراج ستيكر</button>
+            <button class="p-act-btn" onclick="panelOpenNumbering()" title="ترقيم النقاط"><span>🔢</span> توليد نقاط</button>
+            <button class="p-act-btn" onclick="panelConvertToBranches()" title="تقسيم لفروع"><span>🌿</span> تحويل لأفرع</button>
+            <button class="p-act-btn" onclick="panelSaveToBank()" title="حفظ في البنك"><span>💾</span> حفظ في البنك</button>
+            <button class="p-act-btn" onclick="panelDuplicateQuestion()" title="تكرار السؤال"><span>📋</span> تكرار السؤال</button>
+            <button class="p-act-btn btn-danger-act" onclick="panelDeleteQuestion()" title="حذف هذا السؤال"><span>🗑️</span> حذف السؤال</button>
+        </div>
+    </aside>
+
+    <!-- شريط الأدوات المبوب النظيف بدون أي قص -->
+    <header id="mainToolbar" class="ribbon-toolbar-system">
+        
+        <!-- شريط التبويبات العلوي مع زر الإعدادات والزوم -->
+        <div class="ribbon-top-header">
+            <nav class="ribbon-tabs-nav">
+                <button type="button" class="r-tab-btn active" data-tab="home">🏠 الرئيسية</button>
+                <button type="button" class="r-tab-btn" data-tab="insert">➕ إدراج</button>
+                <button type="button" class="r-tab-btn" data-tab="layout">📐 تخطيط الصفحة</button>
+                <button type="button" class="r-tab-btn" data-tab="print">🖨️ المعاينة والطباعة</button>
+                <button type="button" class="r-tab-btn" data-tab="file">📁 ملف والنظام</button>
+                <button type="button" class="r-tab-btn" id="tabBtnTableDesign" style="display:none; background:#047857; color:#fff;" data-tab="tableDesign">📊 تصميم الجدول</button>
+            </nav>
+
+            <div class="ribbon-fixed-controls">
+                <button type="button" class="tool-btn btn-settings" onclick="toggleSettingsModal()" title="لوحة الإعدادات الشاملة (F2)">⚙️ الإعدادات</button>
+                <button type="button" class="tool-btn btn-lang" id="langSwitchBtn" onclick="toggleLanguageMode()">🌐 EN</button>
+                
+                <div class="zoom-global-widget">
+                    <span class="zoom-icon">🔍</span>
+                    <select id="uiScaleSelect" onchange="applyGlobalUiScale(this.value)" class="zoom-select-input">
+                        <option value="auto">تلقائي</option>
+                        <option value="0.75">75%</option>
+                        <option value="0.85">85%</option>
+                        <option value="0.90">90%</option>
+                        <option value="1.0" selected>100%</option>
+                        <option value="1.10">110%</option>
+                        <option value="1.25">125%</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- مساحة محتوى أدوات التبويب النشط -->
+        <div class="ribbon-panels-host">
+            
+            <!-- تبويب 1: الرئيسية -->
+            <div id="rtab-home" class="ribbon-tab-panel active">
+                <div class="r-group">
+                    <span class="r-group-title">الأسئلة</span>
+                    <div class="r-group-row">
+                        <button type="button" class="tool-btn btn-add-q" onclick="createNewQuestion()">➕ سؤال جديد</button>
+                        <button type="button" class="tool-btn btn-bank" onclick="openBankDialog()">📚 بنك الأسئلة</button>
+                        <button type="button" class="tool-btn btn-icon-only" onclick="duplicateActiveQuestionShortcut()" title="تكرار">📋 تكرار</button>
+                        <button type="button" class="tool-btn btn-icon-only" style="background:#dc2626;" onclick="deleteActiveQuestionShortcut()" title="حذف">🗑️ حذف</button>
+                    </div>
+                </div>
+
+                <div class="r-sep"></div>
+
+                <div class="r-group">
+                    <span class="r-group-title">تنسيق الخط والمظهر</span>
+                    <div class="r-group-row">
+                        <button type="button" class="tool-btn btn-icon-only" onmousedown="applyInlineFormat(event, 'bold')" title="عريض"><b>B</b></button>
+                        <button type="button" class="tool-btn btn-icon-only" onmousedown="applyInlineFormat(event, 'italic')" title="مائل"><i>I</i></button>
+                        <button type="button" class="tool-btn btn-icon-only" onmousedown="applyInlineFormat(event, 'underline')" title="تسطير"><u>U</u></button>
+                        
+                        <button type="button" class="tool-btn btn-icon-only" onclick="stepFontSize(event, -1)" title="تصغير">A-</button>
+                        <span id="ribbonFontSizeDisplay" class="r-badge-disp">12pt</span>
+                        <button type="button" class="tool-btn btn-icon-only" onclick="stepFontSize(event, 1)" title="تكبير">A+</button>
+
+                        <label title="لون الخط" class="r-color-label">
+                            <span style="font-size:11px; font-weight:900;">A</span>
+                            <input type="color" onchange="applyInlineColor(this.value)" class="r-color-inp">
+                        </label>
+
+                        <button type="button" class="tool-btn btn-icon-only" onclick="toggleHighlightPalette(event)" title="تظليل ماركر">🖍️</button>
+
+                        <div class="segmented-btns" style="margin-inline-start:4px;">
+                            <button type="button" id="btnThemeLight" onclick="setThemeMode('light')">☀️ نهاري</button>
+                            <button type="button" id="btnThemeDark" class="active" onclick="setThemeMode('dark')">🌙 ليلي</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="r-sep"></div>
+
+                <div class="r-group">
+                    <span class="r-group-title">المحاذاة والعمليات</span>
+                    <div class="r-group-row">
+                        <button type="button" class="tool-btn btn-icon-only" onmousedown="applyInlineFormat(event, 'justifyRight')" title="يمين">➡️</button>
+                        <button type="button" class="tool-btn btn-icon-only" onmousedown="applyInlineFormat(event, 'justifyCenter')" title="توسيط">↔️</button>
+                        <button type="button" class="tool-btn btn-icon-only" onmousedown="applyInlineFormat(event, 'justifyLeft')" title="يسار">⬅️</button>
+                        <button type="button" class="tool-btn btn-icon-only" onclick="undoLastAction()" title="تراجع (Ctrl+Z)">↩️</button>
+                        <button type="button" class="tool-btn btn-icon-only" onclick="redoLastAction()" title="إعادة (Ctrl+Y)">↪️</button>
+                        <button type="button" class="tool-btn" id="voiceTypingBtn" style="background:#6366f1;" onclick="VoiceEngine.toggleListening()" title="إملاء صوتي">🎤 إملاء</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- تبويب 2: إدراج (أزرار نظيفة بدون تداخل) -->
+            <div id="rtab-insert" class="ribbon-tab-panel">
+                <div class="r-group">
+                    <span class="r-group-title">العلوم والمعادلات</span>
+                    <div class="r-group-row">
+                        <button type="button" class="tool-btn btn-science" onclick="toggleDropdown('dropMath', event)">📐 رياضيات وقسمة ▾</button>
+                        <button type="button" class="tool-btn" style="background:#0891b2;" onclick="toggleDropdown('dropPhysics', event)">⚡ فيزياء وكيمياء ▾</button>
+                        <button type="button" class="tool-btn" style="background:#b45309;" onclick="toggleDropdown('dropArabic', event)">📖 قرآن وتشكيل ▾</button>
+                    </div>
+                </div>
+
+                <div class="r-sep"></div>
+
+                <div class="r-group">
+                    <span class="r-group-title">الجداول والقوالب</span>
+                    <div class="r-group-row">
+                        <button type="button" class="tool-btn" style="background:#059669;" onclick="openCustomTableModal()">🛠️ مصمم الجداول</button>
+                        <button type="button" class="tool-btn" style="background:#059669;" onclick="insertMatchColumnsQuestion()">🔄 سؤال توصيل</button>
+                        <button type="button" class="tool-btn" style="background:#059669;" onclick="insertMCQQuestion()">🔘 خيارات MCQ</button>
+                        <button type="button" class="tool-btn" style="background:#059669;" onclick="AdvancedExamTools.generateStudentAnswerSheet()">📝 ورقة الطالب</button>
+                    </div>
+                </div>
+
+                <div class="r-sep"></div>
+
+                <div class="r-group">
+                    <span class="r-group-title">الصور والرموز</span>
+                    <div class="r-group-row">
+                        <button type="button" class="tool-btn btn-stickers" onclick="document.getElementById('imgUpload').click()">🖼️ صورة / ستيكر</button>
+                        <button type="button" class="tool-btn" style="background:#ea580c;" onclick="openQrModal()">📱 باركود QR</button>
+                        <button type="button" class="tool-btn" style="background:#6366f1;" onclick="AdvancedExamTools.generateShuffleVersion('ب')">🔀 نموذج (ب)</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- تبويب 3: تخطيط الصفحة -->
+            <div id="rtab-layout" class="ribbon-tab-panel">
+                <div class="r-group">
+                    <span class="r-group-title">التباعد والضغط الرأسي</span>
+                    <div class="r-group-row">
+                        <div class="gap-controller-wrap">
+                            <span style="font-size:11px; color:#94a3b8; font-weight:bold;">أسئلة:</span>
+                            <button type="button" class="tool-btn btn-icon-only" onclick="adjustQuestionsGap(-2)">-</button>
+                            <span id="qGapDisplayLabel" style="font-size:11px; color:#38bdf8; font-family:monospace; min-width:30px; text-align:center;">12px</span>
+                            <button type="button" class="tool-btn btn-icon-only" onclick="adjustQuestionsGap(2)">+</button>
+                        </div>
+                        <div class="gap-controller-wrap">
+                            <span style="font-size:11px; color:#94a3b8; font-weight:bold;">سطر:</span>
+                            <button type="button" class="tool-btn btn-icon-only" onclick="adjustLineHeight(-0.1)">-</button>
+                            <button type="button" class="tool-btn btn-icon-only" onclick="adjustLineHeight(0.1)">+</button>
+                        </div>
+                        <button type="button" class="tool-btn btn-balance" onclick="autoDistributeSpacing()">↕️ موازنة</button>
+                        <button type="button" class="tool-btn" style="background:#ea580c;" onclick="PreFlightSystem.smartShrinkPage()">🤏 ضغط الورقة</button>
+                    </div>
+                </div>
+
+                <div class="r-sep"></div>
+
+                <div class="r-group">
+                    <span class="r-group-title">الإطار والورقة</span>
+                    <div class="r-group-row">
+                        <select onchange="syncBorderSettings('shape', this.value)" class="r-select-pro">
+                            <option value="gradient">ملون متدرج</option>
+                            <option value="solid">خط متصل</option>
+                            <option value="double">خط مزدوج</option>
+                            <option value="dashed">منقط</option>
+                            <option value="islamic">إسلامي</option>
+                            <option value="geometric">هندسي</option>
+                            <option value="ministry">وزاري</option>
+                            <option value="none">بدون إطار</option>
+                        </select>
+                        <input type="color" value="#2563eb" onchange="syncBorderSettings('color', this.value)" title="لون الإطار" style="width:24px; height:24px; border:none; background:transparent; cursor:pointer;">
+                        
+                        <button type="button" class="tool-btn" style="background:#334155;" onclick="toggleHeaderZone()">🚫 إخفاء/إظهار الهامش</button>
+                        <button type="button" class="tool-btn" style="background:#334155;" onclick="insertNewPageSheetManual()">📄 صفحة جديدة</button>
+                        <button type="button" class="tool-btn" style="background:#0284c7;" onclick="FindReplace.toggle()">🔍 بحث واستبدال</button>
+                        <button type="button" class="tool-btn" onclick="ExamyEditor.insertPageBreak()">↧ فاصل صفحة</button>
+                        <button type="button" class="tool-btn" onclick="ExamyPages.flow()">📄 توزيع الصفحات</button>
+                        <button type="button" class="tool-btn" onclick="ExamyPages.refreshRulers()">📏 تحديث المساطر</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- تبويب 4: المعاينة والطباعة -->
+            <div id="rtab-print" class="ribbon-tab-panel">
+                <div class="r-group">
+                    <span class="r-group-title">الطباعة والمراجعة</span>
+                    <div class="r-group-row">
+                        <button type="button" class="tool-btn btn-print" onclick="promptDirectPrint()">🖨️ طباعة فورية (Ctrl+P)</button>
+                        <button type="button" class="tool-btn btn-preview" onclick="openPrintPreview()">👁️ معاينة الطباعة</button>
+                        <button type="button" class="tool-btn" style="background:#15803d;" onclick="PreFlightSystem.openPreflightModal()">🔍 فحص الورقة الشامل</button>
+                    </div>
+                </div>
+
+                <div class="r-sep"></div>
+
+                <div class="r-group">
+                    <span class="r-group-title">التصدير عالي الدقة</span>
+                    <div class="r-group-row">
+                        <button type="button" class="tool-btn" style="background:#0284c7;" onclick="exportNativeVectorPDF()">📑 تصدير PDF متجهي</button>
+                        <button type="button" class="tool-btn" style="background:#0284c7;" onclick="exportDirectPDF()">📄 تصدير PDF صور</button>
+                        <button type="button" class="tool-btn" style="background:#0284c7;" onclick="exportDirectPNG()">🖼️ صور PNG</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- تبويب 5: ملف والنظام -->
+            <div id="rtab-file" class="ribbon-tab-panel">
+                <div class="r-group">
+                    <span class="r-group-title">الأرشيف والمشاركة</span>
+                    <div class="r-group-row">
+                        <button type="button" class="tool-btn" style="background:#059669;" onclick="saveExamToDb()">💾 حفظ في الأرشيف (Ctrl+S)</button>
+                        <button type="button" class="tool-btn" style="background:#0284c7;" onclick="openArchiveDialog()">🗂️ فتح الأرشيف</button>
+                        <button type="button" class="tool-btn" style="background:#b45309;" onclick="promptSaveCurrentAsTemplate()">⭐ حفظ كنموذج</button>
+                        <button type="button" class="tool-btn" style="background:#0369a1;" onclick="LanHub.openLanDialog()">🌐 مشاركة LAN</button>
+                    </div>
+                </div>
+
+                <div class="r-sep"></div>
+
+                <div class="r-group">
+                    <span class="r-group-title">ملفات وحزم الاختبار</span>
+                    <div class="r-group-row">
+                        <button type="button" class="tool-btn" style="background:#334155;" onclick="exportExamFile()">📤 تصدير (.exam)</button>
+                        <button type="button" class="tool-btn" style="background:#334155;" onclick="document.getElementById('examFileInput').click()">📥 استيراد (.exam)</button>
+                        <button type="button" class="tool-btn" style="background:#334155;" onclick="exportFullBackupZip()">📦 نسخة احتياطية</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- تبويب ديناميكي: تصميم وتحكم الجدول (يظهر فقط عند النقر على جدول) -->
+            <div id="rtab-tableDesign" class="ribbon-tab-panel">
+                <div class="r-group">
+                    <span class="r-group-title">الصفوف والأعمدة</span>
+                    <div class="r-group-row">
+                        <button type="button" class="tool-btn" style="background:#059669;" onclick="ActiveTableEngine.addRow()">➕ صف</button>
+                        <button type="button" class="tool-btn" style="background:#dc2626;" onclick="ActiveTableEngine.deleteRow()">🗑️ حذف صف</button>
+                        <button type="button" class="tool-btn" style="background:#0284c7;" onclick="ActiveTableEngine.addCol()">➕ عمود</button>
+                        <button type="button" class="tool-btn" style="background:#dc2626;" onclick="ActiveTableEngine.deleteCol()">🗑️ حذف عمود</button>
+                    </div>
+                </div>
+
+                <div class="r-sep"></div>
+
+                <div class="r-group">
+                    <span class="r-group-title">الأبعاد الدقيقة (كتابة رقم بالبكسل)</span>
+                    <div class="r-group-row">
+                        <span style="font-size:11px; color:#cbd5e1; font-weight:bold;">العرض:</span>
+                        <input type="number" id="tblExactWidthInput" min="100" max="750" step="10" style="width:75px; background:#090d16; color:#38bdf8; border:1.5px solid #334155; border-radius:6px; padding:3px 6px; font-weight:bold; text-align:center;" oninput="ActiveTableEngine.setExactWidth(this.value)">
+                        <span style="font-size:11px; color:#94a3b8;">px</span>
+
+                        <span style="font-size:11px; color:#cbd5e1; font-weight:bold; margin-inline-start:6px;">الهامش العلوي:</span>
+                        <input type="number" id="tblExactMarginInput" min="0" max="150" step="2" style="width:65px; background:#090d16; color:#38bdf8; border:1.5px solid #334155; border-radius:6px; padding:3px 6px; font-weight:bold; text-align:center;" oninput="ActiveTableEngine.setExactMargin(this.value)">
+                        <span style="font-size:11px; color:#94a3b8;">px</span>
+                    </div>
+                </div>
+
+                <div class="r-sep"></div>
+
+                <div class="r-group">
+                    <span class="r-group-title">الألوان والعمليات</span>
+                    <div class="r-group-row">
+                        <label title="لون حدود الجدول" class="r-color-label">
+                            <span style="font-size:10px;">إطار:</span>
+                            <input type="color" id="tblBorderColorInp" onchange="ActiveTableEngine.setBorderColor(this.value)" class="r-color-inp">
+                        </label>
+                        <label title="لون رأس الجدول" class="r-color-label">
+                            <span style="font-size:10px;">رأس:</span>
+                            <input type="color" id="tblHeaderBgInp" onchange="ActiveTableEngine.setHeaderBg(this.value)" class="r-color-inp">
+                        </label>
+                        <button type="button" class="tool-btn" style="background:#b91c1c;" onclick="ActiveTableEngine.deleteTable()">🗑️ حذف الجدول بالكامل</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </header>
+    <!-- القوائم المنسدلة العلمية الحرة الكاملة (تفتح كـ Popups مستقلة بدون أي قص) -->
+    
+    <!-- 1. قائمة الرياضيات الكاملة بنسبة 100% -->
+    <div class="dropdown-content-pane math-pane-dropdown" id="dropMath" style="width:370px; max-height:80vh; overflow-y:auto;">
+        <div class="dropdown-pane-header">قوالب العمليات الرياضية</div>
+        <div class="math-quick-grid">
+            <button type="button" onclick="insertMathElement('fraction')"><span class="math-demo">½</span><small>كسر اعتيادي</small></button>
+            <button type="button" onclick="insertMathElement('sqrt')"><span class="math-demo">ⁿ√x</span><small>جذر بدليل</small></button>
+            <button type="button" onclick="insertMathElement('long-division')"><span class="math-demo">⟌</span><small>قسمة مطولة</small></button>
+            <button type="button" onclick="insertMathElement('vertical-add')"><span class="math-demo">+ عمودي</span><small>جمع</small></button>
+            <button type="button" onclick="insertMathElement('vertical-sub')"><span class="math-demo">- عمودي</span><small>طرح</small></button>
+            <button type="button" onclick="insertMathElement('vertical-mult')"><span class="math-demo">× عمودي</span><small>ضرب</small></button>
+            <button type="button" onclick="insertMathElement('integral')"><span class="math-demo">∫</span><small>تكامل</small></button>
+            <button type="button" onclick="insertMathElement('derivative')"><span class="math-demo">dy/dx</span><small>مشتقة</small></button>
+            <button type="button" onclick="insertMathElement('vector')"><span class="math-demo">v⃗</span><small>متجه</small></button>
+            <button type="button" onclick="insertMathElement('matrix-2x2')"><span class="math-demo">[::]</span><small>مصفوفة 2×2</small></button>
+        </div>
+        
+        <div class="dropdown-pane-header">رموز رياضية وهندسية</div>
+        <div class="dropdown-symbols-strip">
+            <button type="button" onclick="insertRawSymbol('±')">±</button>
+            <button type="button" onclick="insertRawSymbol('∓')">∓</button>
+            <button type="button" onclick="insertRawSymbol('×')">×</button>
+            <button type="button" onclick="insertRawSymbol('÷')">÷</button>
+            <button type="button" onclick="insertRawSymbol('≠')">≠</button>
+            <button type="button" onclick="insertRawSymbol('≈')">≈</button>
+            <button type="button" onclick="insertRawSymbol('≡')">≡</button>
+            <button type="button" onclick="insertRawSymbol('≤')">≤</button>
+            <button type="button" onclick="insertRawSymbol('≥')">≥</button>
+            <button type="button" onclick="insertRawSymbol('π')">π</button>
+            <button type="button" onclick="insertRawSymbol('∞')">∞</button>
+            <button type="button" onclick="insertRawSymbol('∑')">∑</button>
+            <button type="button" onclick="insertRawSymbol('∏')">∏</button>
+            <button type="button" onclick="insertRawSymbol('∈')">∈</button>
+            <button type="button" onclick="insertRawSymbol('∉')">∉</button>
+            <button type="button" onclick="insertRawSymbol('⊂')">⊂</button>
+            <button type="button" onclick="insertRawSymbol('∩')">∩</button>
+            <button type="button" onclick="insertRawSymbol('∪')">∪</button>
+            <button type="button" onclick="insertRawSymbol('∠')">∠</button>
+            <button type="button" onclick="insertRawSymbol('⊥')">⊥</button>
+            <button type="button" onclick="insertRawSymbol('∥')">∥</button>
+            <button type="button" onclick="insertRawSymbol('°')">°</button>
+        </div>
+    </div>
+
+    <!-- 2. قائمة الفيزياء والكيمياء والبادئات الكاملة بنسبة 100% -->
+    <div class="dropdown-content-pane physics-pane-dropdown" id="dropPhysics" style="width:420px; max-height:85vh; overflow-y:auto;">
+        <div class="dropdown-pane-header" style="color:#facc15;">📏 البادئات والمساحات</div>
+        <div class="dropdown-symbols-strip" style="border-top:none; margin-top:2px;">
+            <button type="button" onclick="insertPhysicsValue('', 'cm')">cm</button>
+            <button type="button" onclick="insertPhysicsValue('', 'mm')">mm</button>
+            <button type="button" onclick="insertPhysicsValue('', 'm²')">m²</button>
+            <button type="button" onclick="insertPhysicsValue('', 'cm²')">cm²</button>
+            <button type="button" onclick="insertPhysicsValue('', 'mm²')">mm²</button>
+            <button type="button" onclick="insertPhysicsValue('', 'µ')">µ (مايكرو)</button>
+            <button type="button" onclick="insertPhysicsValue('', 'n')">n (نانو)</button>
+            <button type="button" onclick="insertPhysicsValue('', 'p')">p (بيكو)</button>
+            <button type="button" onclick="insertPhysicsValue('', 'k')">k (كيلو)</button>
+            <button type="button" onclick="insertPhysicsValue('', 'M')">M (ميغا)</button>
+        </div>
+
+        <div class="dropdown-pane-sub-title" style="font-size:11px; font-weight:800; color:#38bdf8; margin:6px 0 2px 0;">
+            قوى العشرة ذات الأس السالب والموجب (×10ⁿ):
+        </div>
+        <div class="dropdown-symbols-strip" style="border-top:none; margin-top:2px;">
+            <button type="button" onclick="insertScientificExp('-2')">×10⁻²</button>
+            <button type="button" onclick="insertScientificExp('-3')">×10⁻³</button>
+            <button type="button" onclick="insertScientificExp('-4')">×10⁻⁴</button>
+            <button type="button" onclick="insertScientificExp('-6')">×10⁻⁶</button>
+            <button type="button" onclick="insertScientificExp('-9')">×10⁻⁹</button>
+            <button type="button" onclick="insertScientificExp('-12')">×10⁻¹²</button>
+            <button type="button" style="color:#a7f3d0;" onclick="insertScientificExp('3')">×10³</button>
+            <button type="button" style="color:#a7f3d0;" onclick="insertScientificExp('6')">×10⁶</button>
+            <button type="button" style="color:#a7f3d0;" onclick="insertScientificExp('8')">×10⁸</button>
+            <button type="button" style="color:#a7f3d0;" onclick="insertScientificExp('9')">×10⁹</button>
+            <button type="button" style="background:#0369a1; border-color:#38bdf8;" onclick="insertScientificExp('-n')">×10± (مخصص)</button>
+        </div>
+
+        <div class="dropdown-pane-header" style="margin-top:10px; color:#38bdf8;">🚀 وحدات مركبة ومشتقة (كسور)</div>
+        <div class="dropdown-symbols-strip" style="border-top:none; margin-top:2px;">
+            <button type="button" onclick="insertPhysicsValue('', 'm/s')">m/s</button>
+            <button type="button" onclick="insertPhysicsValue('', 'm/s²')">m/s²</button>
+            <button type="button" onclick="insertPhysicsValue('', 'km/h')">km/h</button>
+            <button type="button" onclick="insertPhysicsValue('', 'N/m')">N/m</button>
+            <button type="button" onclick="insertPhysicsValue('', 'J/s')">J/s (W)</button>
+            <button type="button" onclick="insertPhysicsValue('', 'kg/m³')">kg/m³</button>
+            <button type="button" onclick="insertPhysicsValue('', 'rad/s')">rad/s</button>
+        </div>
+
+        <div class="dropdown-pane-header" style="margin-top:10px;">⚙️ الوحدات والكميات الأساسية</div>
+        <div class="dropdown-symbols-strip" style="border-top:none; margin-top:2px;">
+            <button type="button" onclick="insertPhysicsValue('', 'Ω')">Ω</button>
+            <button type="button" onclick="insertPhysicsValue('', 'C')">C</button>
+            <button type="button" onclick="insertPhysicsValue('', 'N')">N</button>
+            <button type="button" onclick="insertPhysicsValue('', 'T')">T</button>
+            <button type="button" onclick="insertPhysicsValue('', 'Wb')">Wb</button>
+            <button type="button" onclick="insertPhysicsValue('', 'Hz')">Hz</button>
+            <button type="button" onclick="insertPhysicsValue('', 'J')">J</button>
+            <button type="button" onclick="insertPhysicsValue('', 'eV')">eV</button>
+            <button type="button" onclick="insertPhysicsValue('', 'V')">V</button>
+            <button type="button" onclick="insertPhysicsValue('', 'A')">A</button>
+            <button type="button" onclick="insertPhysicsValue('', 'W')">W</button>
+            <button type="button" onclick="insertPhysicsValue('', 'H')">H</button>
+            <button type="button" onclick="insertPhysicsValue('', 'F')">F</button>
+        </div>
+
+        <div class="dropdown-pane-header" style="margin-top:10px;">📐 الرموز الفيزيائية الخاصة</div>
+        <div class="dropdown-symbols-strip" style="border-top:none; margin-top:2px;">
+            <button type="button" onclick="insertPhysicsValue('', 'Φ')">Φ</button>
+            <button type="button" onclick="insertPhysicsValue('', 'Φ_B')">Φ_B</button>
+            <button type="button" onclick="insertPhysicsValue('', 'θ')">θ</button>
+            <button type="button" onclick="insertPhysicsValue('', 'Δ')">Δ</button>
+            <button type="button" onclick="insertPhysicsValue('', 'ε_mot')">ε_mot</button>
+            <button type="button" onclick="insertPhysicsValue('', 'ε_ind')">ε_ind</button>
+            <button type="button" onclick="insertPhysicsValue('', 'λ')">λ</button>
+            <button type="button" onclick="insertPhysicsValue('', 'ρ')">ρ</button>
+            <button type="button" onclick="insertPhysicsValue('', 'τ')">τ</button>
+            <button type="button" onclick="insertPhysicsValue('', 'ω')">ω</button>
+            <button type="button" onclick="insertPhysicsValue('', 'Y')">Y</button>
+        </div>
+
+        <div class="dropdown-pane-header" style="margin-top:10px;">🧪 معادلات كيميائية متزنة</div>
+        <button type="button" style="width:100%; background:#0284c7; color:#fff; margin-top:4px;" onclick="AdvancedExamTools.insertChemEquation()">
+            🧪 إدراج معادلة كيميائية متزنة (مع الشروط)
+        </button>
+    </div>
+
+    <!-- 3. قائمة القرآن وتشكيل الحركات الكاملة -->
+    <div class="dropdown-content-pane arabic-pane-dropdown" id="dropArabic" style="width:340px;">
+        <div class="dropdown-pane-header">الحركات والتشكيل المباشر</div>
+        <div class="diacritics-bar">
+            <button type="button" onclick="insertRawSymbol('َ')">َـ</button>
+            <button type="button" onclick="insertRawSymbol('ُ')">ُـ</button>
+            <button type="button" onclick="insertRawSymbol('ِ')">ِـ</button>
+            <button type="button" onclick="insertRawSymbol('ْ')">ْـ</button>
+            <button type="button" onclick="insertRawSymbol('ّ')">ّـ</button>
+            <button type="button" onclick="insertRawSymbol('ً')">ًـ</button>
+            <button type="button" onclick="insertRawSymbol('ٌ')">ٌـ</button>
+            <button type="button" onclick="insertRawSymbol('ٍ')">ٍـ</button>
+        </div>
+        <button type="button" style="width:100%; background:#059669; color:#fff; margin-top:8px;" onclick="AdvancedExamTools.openQuranModal()">📖 جلب آيات بالرسم العثماني</button>
+        <button type="button" style="width:100%; background:#0284c7; color:#fff; margin-top:4px;" onclick="insertPoetryVerse()">🏛️ إدراج شطري بيت شعري</button>
+    </div>
+    <!-- مساحة تصميم الأوراق الامتحانية -->
+    <main id="appStage">
+        <div class="doc-info-strip">
+            <span>معرف الاختبار: <strong id="examIdSpan">--</strong></span>
+            <span>عدد الصفحات: <strong id="pageTotalCount">1</strong></span>
+            
+            <div class="grade-calculator-pill" id="gradePill">
+                <span>مجموع الدرجات:</span>
+                <strong id="totalGradesCounter">0 درجة</strong>
+                <span id="gradeStatusTag" class="grade-tag-status">--</span>
+            </div>
+        </div>
+
+        <div id="sheetsWrapper">
+            <div class="a4-sheet" id="sheet-1" data-index="1">
+                <div class="sheet-frame-box border-style-gradient" id="frameBox-1">
+                    <div class="sheet-bg-layer" id="sheetBg-1"></div>
+                    <div class="watermark-layer" id="wm-1"></div>
+
+                    <!-- المنطقة العلوية المقفولة -->
+                    <div class="sheet-header-locked-zone">
+                        <div class="hdr-action-bar">
+                            <button type="button" class="hdr-mini-btn btn-toggle-hdr-state" onclick="toggleHeaderZone(this.closest('.a4-sheet'))" title="إخفاء مؤقت لاستغلال المساحة">🚫 إخفاء الهامش</button>
+                            <button type="button" class="hdr-mini-btn" style="color:#ef4444;" onclick="removeHeaderZoneCompletely(this.closest('.a4-sheet'))" title="حذف الهامش بالكامل">✖ حذف</button>
+                        </div>
+                        <div class="sheet-header" contenteditable="true" spellcheck="false">
+                            <div class="hdr-cell" id="hdrRight">مديرية التربية: .....................<br>المدرسة: مدرسة الجود الابتدائية<br>للبنين</div>
+                            <div class="hdr-cell hdr-center" id="hdrCenter"><span class="main-title">امتحان نصف السنة</span><br>الدور الأول<br>للعام الدراسي 2026 - 2027</div>
+                            <div class="hdr-cell" id="hdrLeft">الصف / السادس<br>المادة / العلوم<br>التاريخ / .................</div>
+                        </div>
+
+                        <div class="exam-note-wrap">
+                            <button class="del-note-btn" onclick="this.parentElement.remove()" title="حذف الملاحظة">✖</button>
+                            <div class="exam-note-bar" contenteditable="true" spellcheck="false">
+                                ملاحظة / الإجابة عن خمسة أسئلة فقط لكل سؤال 20 درجة
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="questions-stream"></div>
+
+                    <div class="page-break-indicator">--- خط نهاية حد الطباعة للورقة ---</div>
+
+                    <div class="sheet-smart-footer">
+                        <span class="footer-custom-text" contenteditable="true" spellcheck="false">انتهت الأسئلة - تمنياتنا لكم بالنجاح والتفوق</span>
+                        <span class="footer-page-index" style="display:none !important;">صفحة 1 من <span class="total-pages-ref">1</span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- شريط العمليات ومراقبة الموارد السفلي -->
+    <footer class="bottom-action-bar">
+        <div class="bottom-bar-content">
+            <button class="b-btn btn-save-all" onclick="saveExamToDb()">💾 حفظ الأسئلة الحالية</button>
+            <button class="b-btn btn-reset-all" onclick="resetAllQuestions()">🗑️ تفريغ كافة الأسئلة</button>
+            
+            <div class="system-monitor-hud">
+                <div class="hud-item"><span class="hud-icon">🔑</span><strong id="hudLicStatus" class="hud-val text-success">مفعل 100%</strong></div>
+                <div class="hud-item"><span class="hud-icon">⚡</span><strong id="hudCpuPercent" class="hud-val">10%</strong></div>
+                <div class="hud-item"><span class="hud-icon">📊</span><strong id="hudRamPercent" class="hud-val">42%</strong></div>
+            </div>
+
+            <div class="stats-badges-group">
+                <div class="stats-badge">الأسئلة: <span id="qCountBadge">0</span></div>
+                <div class="stats-badge">الصفحات: <span id="footerPageCountBadge">1</span></div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- نافذة التدقيق الذكي قبل الطباعة -->
+    <div id="preflightModal" class="fullscreen-overlay">
+        <div class="overlay-card" style="max-width:560px;">
+            <div class="dialog-top">
+                <h3>🔍 الفحص الذكي للورقة قبل الطباعة</h3>
+                <button class="close-x" onclick="document.getElementById('preflightModal').classList.remove('active')">✖</button>
+            </div>
+            <div class="dialog-scrollable" id="preflightIssuesList" style="max-height:360px;"></div>
+            <div style="margin-top:15px; display:flex; gap:8px;">
+                <button type="button" class="btn-action-primary" style="background:#059669;" onclick="document.getElementById('preflightModal').classList.remove('active'); promptDirectPrint();">المتابعة للطباعة المباشرة 🖨️</button>
+                <button type="button" class="btn-action-primary" style="background:#334155;" onclick="document.getElementById('preflightModal').classList.remove('active')">إغلاق وتعديل الورقة</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة مستكشف القرآن الكريم والبحث عن الآيات -->
+    <div id="quranModal" class="fullscreen-overlay">
+        <div class="overlay-card" style="max-width:720px; width:92%; max-height:85vh; display:flex; flex-direction:column;">
+            <div class="dialog-top">
+                <h3 style="color:#059669; margin:0; display:flex; align-items:center; gap:8px;">
+                    <span>📖</span> مستكشف القرآن الكريم بالرسم العثماني
+                </h3>
+                <button type="button" class="close-x" onclick="document.getElementById('quranModal').classList.remove('active')">✖</button>
+            </div>
+
+            <div style="background:#f8fafc; padding:12px; border-radius:10px; border:1px solid #cbd5e1; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;">
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    <div style="flex:2; min-width:180px;">
+                        <label style="font-size:12px; font-weight:bold; color:#334155;">السورة المباركة:</label>
+                        <select id="quranSurahSelect" onchange="QuranEngine.onSurahChange()" style="width:100%; padding:6px; border-radius:6px; border:1.5px solid #cbd5e1; font-family:inherit;"></select>
+                    </div>
+                    <div style="flex:1; min-width:90px;">
+                        <label style="font-size:12px; font-weight:bold; color:#334155;">من آية:</label>
+                        <input type="number" id="quranFromAyah" min="1" value="1" style="width:100%; padding:6px; border-radius:6px; border:1.5px solid #cbd5e1; text-align:center;">
+                    </div>
+                    <div style="flex:1; min-width:90px;">
+                        <label style="font-size:12px; font-weight:bold; color:#334155;">إلى آية:</label>
+                        <input type="number" id="quranToAyah" min="1" value="5" style="width:100%; padding:6px; border-radius:6px; border:1.5px solid #cbd5e1; text-align:center;">
+                    </div>
+                    <div style="align-self:flex-end;">
+                        <button type="button" class="tool-btn" style="background:#059669; padding:8px 14px;" onclick="QuranEngine.loadAyahRange()">جلب الآيات 🔍</button>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <input type="text" id="quranSearchWord" placeholder="أو ابحث عن كلمة داخل السورة المحددة..." style="flex:1; padding:7px 10px; border-radius:6px; border:1.5px solid #cbd5e1; font-family:inherit;">
+                    <button type="button" class="tool-btn" style="background:#0284c7; padding:7px 14px;" onclick="QuranEngine.searchKeyword()">بحث</button>
+                </div>
+            </div>
+
+            <div id="quranResultBox" style="flex:1; overflow-y:auto; background:#ffffff; border:1.5px dashed #059669; border-radius:10px; padding:16px; font-family:'Amiri', serif; font-size:19px; line-height:2.2; text-align:justify; color:#0f172a; min-height:160px; max-height:300px;">
+                <div style="text-align:center; color:#94a3b8; padding-top:40px; font-family:'Tajawal', sans-serif; font-size:13px;">اختر السورة ونطاق الآيات ثم اضغط (جلب الآيات)</div>
+            </div>
+
+            <!-- عنصر قوران ليست الداعم لدوال النماذج السريعة لمنع أي خطأ جافاسكريبت -->
+            <div id="quranVersesList" style="display:none;"></div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+                <span id="quranSelectionInfo" style="font-size:12px; font-weight:bold; color:#059669;">--</span>
+                <div style="display:flex; gap:8px;">
+                    <button type="button" class="tool-btn" style="background:#059669; padding:8px 18px; font-weight:800;" onclick="QuranEngine.insertSelectedAyahsToExam()">✅ إدراج الآيات في الورقة</button>
+                    <button type="button" class="tool-btn" style="background:#64748b; padding:8px 14px;" onclick="document.getElementById('quranModal').classList.remove('active')">إلغاء</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة المشاركة عبر الشبكة المحلية (LAN) -->
+    <div id="lanModal" class="fullscreen-overlay">
+        <div class="overlay-card" style="max-width:540px; text-align:center;">
+            <div class="dialog-top">
+                <h3>🌐 خدمة المشاركة والطباعة عبر الشبكة المحلية (LAN)</h3>
+                <button class="close-x" onclick="document.getElementById('lanModal').classList.remove('active')">✖</button>
+            </div>
+            <p style="font-size:13px; color:#64748b;">افتح الرابط التالي من أي هاتف أو كمبيوتر متصل بنفس الراوتر لإرسال الأسئلة للطباعة مباشرة:</p>
+            <div style="background:#0f172a; color:#38bdf8; font-family:monospace; padding:10px; border-radius:8px; font-size:16px; font-weight:bold; margin:10px 0;" id="lanServerUrl">
+                http://192.168.1.100:3000
+            </div>
+            <div id="lanQrCode" style="display:inline-block; margin:10px auto;"></div>
+            <div class="dialog-scrollable" id="lanIncomingList" style="max-height:180px; margin-top:10px;"></div>
+        </div>
+    </div>
+
+    <!-- نافذة الترخيص -->
+    <div id="licenseModal" class="fullscreen-overlay">
+        <div class="pro-license-card">
+            <div class="pro-badge-header">
+                <div class="pro-shield-icon">🛡️</div>
+                <div class="pro-app-brand">
+                    <h2>Examy <span>PRO</span></h2>
+                    <p>نظام تصميم وطباعة الاختبارات المدرسية والوزارية</p>
+                </div>
+            </div>
+            <div class="pro-form-body">
+                <label class="pro-input-label">مفتاح تفعيل النسخة المعتمدة:</label>
+                <div class="pro-input-wrapper">
+                    <input type="text" id="licenseKeyInput" placeholder="EXAM-XXXX-XXXX-XXXX" spellcheck="false" autocomplete="off">
+                </div>
+                <button class="pro-activate-btn" onclick="handleActivateBtn()">
+                    <span>تأكيد التفعيل وربط الترخيص</span> <span>←</span>
+                </button>
+                <div id="licenseFeedback" class="pro-feedback-msg"></div>
+                <div class="pro-hwid-strip">
+                    <div class="hwid-info">
+                        <small>بصمة الجهاز المعتمدة (HWID):</small>
+                        <strong id="hwidDisplay">--</strong>
+                    </div>
+                    <button type="button" class="pro-copy-hwid-btn" onclick="copyHWIDToClipboard()">📋 نسخ</button>
+                </div>
+            </div>
+            <div class="pro-card-footer"><span>نسخة مرخصة ومحمية ضد التعديل © 2026</span></div>
+        </div>
+    </div>
+
+    <!-- نافذة تأكيد أمر الطباعة المباشر -->
+    <div id="directPrintConfirmModal" class="fullscreen-overlay">
+        <div class="print-confirm-card">
+            <div class="print-confirm-header">
+                <span class="print-ico-glow">🖨️</span>
+                <h3>تأكيد إرسال أمر الطباعة المباشر</h3>
+            </div>
+            <div class="print-confirm-details">
+                <div class="print-summary-box">
+                    <div class="print-sum-row"><span>الطابعة:</span><strong id="confirmPrinterName">طابعة النظام</strong></div>
+                    <div class="print-sum-row"><span>الورق:</span><strong id="confirmPaperMode">ورق قياسي A4</strong></div>
+                </div>
+            </div>
+            <div class="print-confirm-actions">
+                <button type="button" class="btn-confirm-execute" onclick="executeSilentDirectPrint()">✅ طباعة فورية</button>
+                <button type="button" class="btn-cancel-execute" onclick="closePrintConfirmModal()">❌ إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة تخصيص شكل السؤال المكتملة بكل حقول الألوان والمحاذاة -->
+    <div id="qShapeModal" class="modal-backdrop">
+        <div class="modal-dialog">
+            <div class="dialog-top">
+                <h3>🎨 تخصيص شكل وتصميم السؤال</h3>
+                <button class="close-x" onclick="closeQShapeModal()">✖</button>
+            </div>
+            <div class="dialog-content">
+                <div class="settings-grid-cols">
+                    <div class="field-row">
+                        <label>النمط الشكلي:</label>
+                        <select id="modalQShapeSelect">
+                            <option value="shape-classic">كلاسيكي ببادج علوي</option>
+                            <option value="shape-banner">شريط علوي متكامل (Header Bar)</option>
+                            <option value="shape-modern">شريط جانبي عصري (Modern)</option>
+                            <option value="shape-double">إطار مزدوج رسمي (Double)</option>
+                            <option value="shape-card">بطاقة مظللة (Shadow Card)</option>
+                        </select>
+                    </div>
+                    <div class="field-row">
+                        <label>محاذاة شارة السؤال:</label>
+                        <select id="modalQAlignSelect">
+                            <option value="align-right">يمين</option>
+                            <option value="align-center">وسط</option>
+                            <option value="align-left">يسار</option>
+                        </select>
+                    </div>
+                    <div class="field-row">
+                        <label>لون إطار السؤال:</label>
+                        <input type="color" id="modalQBorderColor" value="#ff9f43">
+                    </div>
+                    <div class="field-row">
+                        <label>لون خلفية شارة السؤال:</label>
+                        <input type="color" id="modalQBadgeBg" value="#ff9f43">
+                    </div>
+                </div>
+                <button class="btn-action-primary mt-15" onclick="applyAdvancedQCustomization()">تطبيق التعديلات</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة الترقيم المخصص -->
+    <div id="numberingModal" class="modal-backdrop">
+        <div class="modal-dialog">
+            <div class="dialog-top">
+                <h3>🔢 توليد الترقيم والنقاط التلقائي</h3>
+                <button class="close-x" onclick="closeNumberingModal()">✖</button>
+            </div>
+            <div class="dialog-content">
+                <div class="field-row">
+                    <label>عدد النقاط:</label>
+                    <input type="number" id="numCountInput" min="1" max="25" value="4">
+                </div>
+                <div class="field-row">
+                    <label>توزيع النقاط في الأسطر:</label>
+                    <select id="numLayoutSelect">
+                        <option value="1" selected>نقطة في كل سطر</option>
+                        <option value="2">نقطتان في كل سطر</option>
+                        <option value="3">3 نقاط في كل سطر</option>
+                        <option value="4">4 نقاط في كل سطر</option>
+                    </select>
+                </div>
+                <button class="btn-action-primary" onclick="applyCustomNumbering()">تطبيق الترقيم</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة معاينة الطباعة الحقيقية الشاملة -->
+    <div id="printPreviewModal" class="preview-backdrop">
+        <div class="preview-top-toolbar">
+            <div class="preview-title-group">
+                <span>👁️</span><span>معاينة الطباعة</span><span id="previewPageFormatBadge" class="preview-badge-paper">A4</span>
+            </div>
+            <div class="preview-border-toolbar">
+                <span class="toolbar-label">حجم الورق:</span>
+                <select id="previewPaperSizeSelect" onchange="handlePaperSizeChange(this.value)">
+                    <option value="A4">A4</option>
+                </select>
+                <label id="previewBookletWrap" style="display:flex; align-items:center; gap:4px; cursor:pointer;">
+                    <input type="checkbox" id="previewBookletToggle" onchange="handleBookletToggle(this.checked)">
+                    <strong style="color:#facc15; font-size:11px;">📑 دفتر A3</strong>
+                </label>
+                <select id="prevBorderShape" onchange="syncBorderSettings('shape', this.value)">
+                    <option value="gradient">ملون متدرج</option>
+                    <option value="solid">خط متصل</option>
+                    <option value="double">خط مزدوج</option>
+                    <option value="dashed">منقط</option>
+                    <option value="islamic">إطار إسلامي</option>
+                    <option value="geometric">إطار هندسي</option>
+                    <option value="ministry">إطار وزاري</option>
+                    <option value="none">بدون إطار</option>
+                </select>
+                <input type="color" id="prevBorderColor" value="#2563eb" onchange="syncBorderSettings('color', this.value)">
+            </div>
+            <div class="preview-controls">
+                <button class="preview-zoom-btn" onclick="adjustPreviewZoom(-0.1)">🔍 -</button>
+                <span id="previewZoomLabel" style="font-size:11px; font-weight:800; color:#38bdf8;">90%</span>
+                <button class="preview-zoom-btn" onclick="adjustPreviewZoom(0.1)">🔍 +</button>
+                <button class="btn-confirm-print" onclick="promptDirectPrint()">🖨️ طباعة فورية</button>
+                <button class="btn-close-preview" onclick="closePrintPreview()">✖ إغلاق</button>
+            </div>
+        </div>
+        <div class="preview-viewport-scroll"><div id="previewPagesHost"></div></div>
+    </div>
+
+    <!-- نافذة بنك الأسئلة والأرشيف و QR -->
+    <div id="bankModal" class="modal-backdrop">
+        <div class="modal-dialog modal-wide">
+            <div class="dialog-top"><h3>📚 بنك الأسئلة النموذجي</h3><button class="close-x" onclick="closeBankDialog()">✖</button></div>
+            <div class="dialog-search"><input type="text" id="bankSearch" placeholder="ابحث في بنك الأسئلة..." oninput="filterBankItems()"></div>
+            <div class="dialog-scrollable" id="bankCardsHost"></div>
+        </div>
+    </div>
+
+    <div id="archiveModal" class="modal-backdrop">
+        <div class="modal-dialog modal-wide">
+            <div class="dialog-top"><h3>📂 الأرشيف وقاعدة بيانات الاختبارات</h3><button class="close-x" onclick="closeArchiveDialog()">✖</button></div>
+            <div class="archive-nav-tabs">
+                <button class="tab-btn active" onclick="switchArchiveTab('full')">🗂️ النماذج الكاملة</button>
+                <button class="tab-btn" onclick="switchArchiveTab('single')">📑 الأسئلة الفردية</button>
+            </div>
+            <div class="dialog-search"><input type="text" id="archiveSearch" placeholder="بحث بالمعرف أو العنوان..." oninput="filterArchiveItems()"></div>
+            <div class="dialog-scrollable" id="archiveCardsHost"></div>
+        </div>
+    </div>
+
+    <div id="qrModal" class="modal-backdrop">
+        <div class="modal-dialog">
+            <div class="dialog-top"><h3>📱 باركود مشاركة الاختبار</h3><button class="close-x" onclick="closeQrModal()">✖</button></div>
+            <div class="dialog-content" style="text-align:center;">
+                <div id="qrCodeContainer" style="display:inline-block; margin:15px 0;"></div>
+                <button class="btn-action-primary" onclick="insertQrToActiveSheet()">إدراج الباركود داخل الورقة</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة اختيار اللغة بتصميم البطاقات -->
+    <div id="languageModal" class="fullscreen-overlay">
+        <div class="overlay-card lang-card">
+            <h2>اختر نظام ولغة الاختبار</h2>
+            <div class="lang-selection-grid">
+                <button type="button" class="lang-card-btn" onclick="initLanguageChoice('ar')">
+                    <span class="flag">🇮🇶</span>
+                    <strong>اللغة العربية</strong>
+                    <small>الامتحانات العامة والمدارس والمناهج العربية</small>
+                </button>
+                <button type="button" class="lang-card-btn" onclick="initLanguageChoice('en')">
+                    <span class="flag">🇬🇧</span>
+                    <strong>English Language</strong>
+                    <small>Official Exams, Science, and Languages</small>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة الإعدادات الشاملة المكتملة بكل المتحكمات -->
+    <div id="settingsModal" class="modal-backdrop">
+        <div class="modal-dialog modal-settings-pro">
+            <div class="dialog-top">
+                <h3>⚙️ لوحة إعدادات النظام، الطابعات، الإطارات والورق</h3>
+                <button type="button" class="close-x" onclick="toggleSettingsModal()">✖</button>
+            </div>
+            
+            <div class="settings-body-layout">
+                <nav class="settings-sidebar-nav">
+                    <button type="button" class="s-tab-btn active" onclick="switchSettingsTab('general')">🎨 المظهر والخطوط</button>
+                    <button type="button" class="s-tab-btn" onclick="switchSettingsTab('borders')">📐 الإطار والهوامش</button>
+                    <button type="button" class="s-tab-btn" onclick="switchSettingsTab('watermark')">💧 العلامة والخلفية</button>
+                    <button type="button" class="s-tab-btn" onclick="switchSettingsTab('paper')">📑 حجم الورق والكتيب</button>
+                    <button type="button" class="s-tab-btn" onclick="switchSettingsTab('printers')">🖨️ إدارة الطابعات</button>
+                    <button type="button" class="s-tab-btn" onclick="switchSettingsTab('templates')">💾 النماذج الجاهزة</button>
+                    <button type="button" class="s-tab-btn" onclick="switchSettingsTab('shortcuts')">⌨️ اختصارات الكيبورد</button>
+                </nav>
+
+                <div class="settings-content-area">
+                    <div id="stab-general" class="stab-content active">
+                        <div class="settings-section-card">
+                            <div class="settings-card-title">واجهة البرنامج والخط العام</div>
+                            <div class="settings-grid-cols">
+                                <div class="field-row">
+                                    <label>الوضع اللوني:</label>
+                                    <div class="segmented-btns">
+                                        <button type="button" class="active" onclick="setThemeMode('light')">☀️ نهاري</button>
+                                        <button type="button" onclick="setThemeMode('dark')">🌙 ليلي</button>
+                                    </div>
+                                </div>
+                                <div class="field-row">
+                                    <label>موضع شريط الأدوات:</label>
+                                    <div class="segmented-btns">
+                                        <button type="button" class="active" onclick="setToolbarPosition('top')">أعلى</button>
+                                        <button type="button" onclick="setToolbarPosition('right')">يمين</button>
+                                        <button type="button" onclick="setToolbarPosition('left')">يسار</button>
+                                    </div>
+                                </div>
+                                <div class="field-row">
+                                    <label>نظام الأرقام المعتمد:</label>
+                                    <select id="numberSystemSelect" onchange="changeNumberSystem(this.value)">
+                                        <option value="ar" selected>أرقام مشرقية (١، ٢، ٣)</option>
+                                        <option value="en">أرقام إنجليزية (1, 2, 3)</option>
+                                    </select>
+                                </div>
+                                <div class="field-row">
+                                    <label>نوع الخط العام:</label>
+                                    <select id="fontSelect" onchange="changeDocFont(this.value)">
+                                        <option value="'Tajawal', sans-serif">Tajawal (عصري متناسق)</option>
+                                        <option value="'Cairo', sans-serif">Cairo (عريض رسمي)</option>
+                                        <option value="'Amiri', serif">Amiri (نسخ كلاسيكي)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="field-row">
+    <label>الخلفية الحية المتحركة (10 أنماط مجهزة):</label>
+    <select id="liveCanvasModeSelect" onchange="document.body.setAttribute('data-bg-motion', this.value); localStorage.setItem('examy_live_bg', this.value);">
+        <option value="none">0. بدون خلفية متحركة (ثابت كلاسيكي)</option>
+        <option value="stars">1. نجوم فضائية نابضة (Deep Cosmic Stars)</option>
+        <option value="aurora">2. شفق قطبي متدفق (Flowing Aurora Borealis)</option>
+        <option value="grid">3. شبكة سايبر ثلاثية الأبعاد (Cyber Matrix Grid)</option>
+        <option value="mesh">4. نسيج نيون متموج (Neon Ambient Mesh)</option>
+        <option value="nebula">5. جزيئات الغبار السديمي (Nebula Dust)</option>
+        <option value="matrix">6. مطر الشيفرات الرقمية (Digital Rain)</option>
+        <option value="hyperspace">7. نفق الفضاء فائق السرعة (Hyperspace Warp)</option>
+        <option value="quantum">8. تموجات الطاقة الكمية (Quantum Waves)</option>
+        <option value="solar">9. التوهج الشمسي الدوار (Solar Flare Aura)</option>
+        <option value="cyberpunk">10. أفق السايبربانك النيون (Synthwave Horizon)</option>
+    </select>
+</div>
+<div class="field-row">
+    <label>شفافية الموشن الخلفي: <span id="bgOpacityLabel" style="color:#38bdf8; font-weight:bold;">35%</span></label>
+    <input type="range" id="bgOpacitySlider" min="0.05" max="1" step="0.05" value="0.35" oninput="document.documentElement.style.setProperty('--motion-bg-opacity', this.value); document.getElementById('bgOpacityLabel').textContent = Math.round(this.value*100)+'%'; localStorage.setItem('examy_bg_opacity', this.value);">
+</div>
+                    </div>
+
+                    <div id="stab-borders" class="stab-content">
+                        <div class="settings-section-card">
+                            <div class="settings-card-title">تخصيص نمط وسماكة الإطار</div>
+                            <div class="settings-grid-cols">
+                                <div class="field-row">
+                                    <label>نمط الإطار الرسمي:</label>
+                                    <select id="settBorderShape" onchange="syncBorderSettings('shape', this.value)">
+                                        <option value="gradient">ملون متدرج (Gradient)</option>
+                                        <option value="solid">خط متصل (Solid)</option>
+                                        <option value="double">خط مزدوج رسمي (Double)</option>
+                                        <option value="dashed">منقط (Dashed)</option>
+                                        <option value="islamic">إطار إسلامي مزخرف</option>
+                                        <option value="geometric">إطار هندسي وزاري</option>
+                                        <option value="ministry">إطار وزاري كلاسيكي</option>
+                                        <option value="elegant">إطار أنيق هادئ</option>
+                                        <option value="none">بدون إطار</option>
+                                    </select>
+                                </div>
+                                <div class="field-row">
+                                    <label>لون خط الإطار:</label>
+                                    <input type="color" id="settBorderColor" value="#2563eb" onchange="syncBorderSettings('color', this.value)">
+                                </div>
+                                <div class="field-row">
+                                    <label>حجم / سماكة الإطار: <span id="borderSizeLabel" style="color:#38bdf8; font-weight:bold;">12px</span></label>
+                                    <input type="range" id="borderSizeSlider" min="1" max="25" value="12" oninput="document.getElementById('borderSizeLabel').textContent = this.value + 'px'; syncBorderSettings('size', this.value + 'px');">
+                                </div>
+                                <div class="field-row">
+                                    <label>المسافة الفاصلة بين حافة الورقة والإطار (Inset): <span id="frameInsetLabel" style="color:#38bdf8; font-weight:bold;">12mm</span></label>
+                                    <input type="range" id="frameInsetSlider" min="2" max="30" value="12" oninput="syncFrameInset(this.value)">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="stab-watermark" class="stab-content">
+                        <div class="settings-section-card">
+                            <div class="settings-card-title">العلامة المائية وخلفية الصفحة</div>
+                            <div class="settings-grid-cols">
+                                <div class="field-row">
+                                    <label>نص العلامة المائية:</label>
+                                    <input type="text" id="wmTextInput" placeholder="اكتب اسم المدرسة أو المادة..." oninput="applyWatermarkSettings()">
+                                </div>
+                                <div class="field-row">
+                                    <label>شفافية العلامة المائية:</label>
+                                    <input type="range" id="wmOpacitySlider" min="0.01" max="0.3" step="0.01" value="0.08" oninput="watermarkConfig.opacity = this.value; applyWatermarkSettings();">
+                                </div>
+                                <div class="field-row">
+                                    <label>نوع خلفية الورقة:</label>
+                                    <select id="sheetBgTypeSelect" onchange="handleSheetBgTypeChange(this.value)">
+                                        <option value="color">لون مخصص</option>
+                                        <option value="image">صورة شعار أو كليشة</option>
+                                    </select>
+                                </div>
+                                <div class="field-row" id="bgColPickerWrap">
+                                    <label>لون خلفية الورقة:</label>
+                                    <input type="color" id="sheetBgColorInput" value="#ffffff" onchange="applySheetBgSettings()">
+                                </div>
+                            </div>
+
+                            <div style="display: flex; gap: 8px; margin-top: 14px;">
+                                <button type="button" class="tool-btn" style="background:#0284c7; flex: 1;" onclick="document.getElementById('bgImageUpload').click()">
+                                    🖼️ اختيار صورة كخلفية للورقة
+                                </button>
+                                <button type="button" id="removeBgImgBtn" class="tool-btn" style="background:#dc2626; display: none;" onclick="removeSheetBgImage()" title="حذف صورة الخلفية الحالية">
+                                    🗑️ حذف الخلفية
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="stab-paper" class="stab-content">
+                        <div class="settings-section-card">
+                            <div class="settings-card-title">إعدادات أبعاد الورقة والدفتر الامتحاني</div>
+                            <div class="field-row">
+                                <label>المقاس القياسي للورق:</label>
+                                <select id="settingsPaperSizeSelect" onchange="handlePaperSizeChange(this.value)">
+                                    <option value="A4" selected>A4 (210 × 297 ملم)</option>
+                                    <option value="A3">A3 (297 × 420 ملم)</option>
+                                    <option value="Letter">Letter</option>
+                                </select>
+                            </div>
+                            <div class="field-row" style="margin-top:16px;">
+                                <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                                    <input type="checkbox" id="settingsBookletToggle" onchange="handleBookletToggle(this.checked)">
+                                    <strong style="color:#facc15;">تفعيل نظام الدفتر الامتحاني الذكي (A3 Booklet)</strong>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="stab-printers" class="stab-content">
+                        <div class="settings-section-card">
+                            <div class="settings-card-title">التعرف على أجهزة الطباعة الموصولة</div>
+                            <div class="field-row">
+                                <label>الطابعة الافتراضية للطباعة الفورية:</label>
+                                <div style="display:flex; gap:8px;">
+                                    <select id="printerSelect" style="flex:1;" onchange="handlePrinterChange(this.value)"></select>
+                                    <button type="button" class="b-btn" style="background:#0284c7;" onclick="loadSystemPrintersToSettings()">🔄 تحديث</button>
+                                </div>
+                            </div>
+                            <button type="button" class="b-btn" style="background:#7c3aed; width:100%; margin-top:14px; justify-content:center;" onclick="openSelectedPrinterProps()">
+                                ⚙️ فتح تفضيلات الطابعة المحددة في ويندوز
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="stab-templates" class="stab-content">
+                        <div class="settings-section-card">
+                            <div class="settings-card-title">إدارة النماذج المخصصة والقوالب</div>
+                            <button type="button" class="btn-action-primary" style="background:#059669;" onclick="promptSaveCurrentAsTemplate()">
+                                ⭐ حفظ التصميم الحالي كنموذج مخصص وافتراضي
+                            </button>
+                            <div class="field-row" style="margin-top:16px;">
+                                <label>استرجاع النماذج المحفوظة:</label>
+                                <div style="display:flex; gap:8px;">
+                                    <select id="savedTemplatesSelect" style="flex:1;"></select>
+                                    <button type="button" class="tool-btn" style="background:#2563eb;" onclick="loadSelectedTemplate()">تحميل</button>
+                                    <button type="button" class="tool-btn" style="background:#dc2626;" onclick="deleteSelectedTemplate()">حذف</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="stab-shortcuts" class="stab-content">
+                        <div class="settings-section-card">
+                            <div class="settings-card-title">دليل اختصارات لوحة المفاتيح والماوس الشاملة</div>
+                            <table class="shortcuts-modern-table">
+                                <thead>
+                                    <tr><th>الوظيفة / الأمر</th><th>مفتاح الاختصار</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>تكبير وتصغير مساحة العمل (Zoom)</td><td><kbd>Ctrl + عجلة الماوس</kbd></td></tr>
+                                    <tr><td>التحريك والتمرير أفقياً يميناً ويساراً</td><td><kbd>Alt + عجلة الماوس</kbd></td></tr>
+                                    <tr><td>إعادة حجم الشاشة إلى 100%</td><td><kbd>Ctrl + 0</kbd></td></tr>
+                                    <tr><td>إنشاء سؤال جديد</td><td><kbd>Ctrl + N</kbd></td></tr>
+                                    <tr><td>تكرار السؤال النشط</td><td><kbd>Ctrl + Shift + D</kbd></td></tr>
+                                    <tr><td>حذف السؤال النشط</td><td><kbd>Delete</kbd></td></tr>
+                                    <tr><td>تراجع / إعادة</td><td><kbd>Ctrl + Z</kbd> / <kbd>Ctrl + Y</kbd></td></tr>
+                                    <tr><td>حفظ الامتحان في الأرشيف</td><td><kbd>Ctrl + S</kbd></td></tr>
+                                    <tr><td>طباعة فورية</td><td><kbd>Ctrl + P</kbd></td></tr>
+                                    <tr><td>معاينة حقيقية للطباعة</td><td><kbd>Ctrl + Shift + P</kbd></td></tr>
+                                    <tr><td>ضغط الورقة الذكي المطور</td><td><kbd>Ctrl + Shift + S</kbd></td></tr>
+                                    <tr><td>موازنة المسافات عمودياً</td><td><kbd>Ctrl + B</kbd></td></tr>
+                                    <tr><td>بحث واستبدال شامل</td><td><kbd>Ctrl + F</kbd></td></tr>
+                                    <tr><td>إملاء صوتي بالكتابة المباشرة</td><td><kbd>Win + H</kbd> أو <kbd>Ctrl + Shift + V</kbd></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة مصمم الجداول المتقدم التفاعلي المكتملة بالألوان الناقصة -->
+    <div id="advancedTableModal" class="modal-backdrop">
+        <div class="modal-dialog table-designer-modal">
+            <div class="dialog-top">
+                <h3 style="color:#38bdf8;">📊 مصمم الجداول التفاعلي الاحترافي</h3>
+                <button class="close-x" onclick="closeAdvancedTableModal()">✖</button>
+            </div>
+            <div class="table-designer-grid">
+                <div class="table-ctrls-panel">
+                    <div class="field-row"><label>الصفوف:</label><input type="number" id="tblRowsInput" min="1" max="15" value="3" oninput="renderTableLivePreview()"></div>
+                    <div class="field-row"><label>الأعمدة:</label><input type="number" id="tblColsInput" min="1" max="10" value="4" oninput="renderTableLivePreview()"></div>
+                    <div class="field-row"><label>النمط:</label><select id="tblBorderStyle" onchange="renderTableLivePreview()"><option value="solid">متصل</option><option value="double">مزدوج</option><option value="dashed">منقط</option></select></div>
+                    <div class="field-row"><label>لون حدود الجدول:</label><input type="color" id="tblBorderColor" value="#334155" onchange="renderTableLivePreview()"></div>
+                    <div class="field-row"><label>لون خلفية رأس الجدول:</label><input type="color" id="tblHeaderBg" value="#f1f5f9" onchange="renderTableLivePreview()"></div>
+                    <div class="field-row"><label>تلوين الخلية المحددة:</label><input type="color" id="tblSelectedCellColor" value="#e0f2fe" onchange="applyColorToSelectedCell()"></div>
+                </div>
+                <div class="table-preview-panel">
+                    <div class="table-preview-scroll"><div id="tableLivePreviewHost"></div></div>
+                    <button type="button" class="btn-action-primary mt-15" style="background:#059669;" onclick="insertConfiguredTableToExam()">✅ إدراج الجدول داخل الورقة</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- شاشة المعاينة المصغرة (Minimap) عند الزووم فوق 140% -->
+    <div id="zoomMinimap" class="zoom-minimap-panel" style="display:none;">
+        <div class="minimap-header">
+            <span>🗺️ معاينة الورقة (زوم نشط)</span>
+            <button type="button" onclick="applyWorkspaceZoom(1)" title="إعادة ضبط الحجم">100%</button>
+        </div>
+        <div class="minimap-viewport">
+            <div id="minimapThumbContent" class="minimap-thumb">📄</div>
+        </div>
+    </div>
+
+    <!-- نافذة حفظ النموذج المخصص المدمجة -->
+    <div id="saveTemplateCustomModal" class="fullscreen-overlay" style="display:none; z-index:99999999;">
+        <div class="overlay-card" style="max-width:420px; background:#0f172a; border:2px solid #38bdf8; border-radius:14px; padding:20px; color:#fff;">
+            <div class="dialog-top" style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                <h3 style="color:#38bdf8; margin:0; font-size:15px;">⭐ حفظ التصميم كنموذج مخصص</h3>
+                <button type="button" class="close-x" onclick="document.getElementById('saveTemplateCustomModal').style.display='none'" style="background:transparent; border:none; color:#94a3b8; font-size:16px; cursor:pointer;">✖</button>
+            </div>
+            <p style="font-size:12px; color:#cbd5e1; margin-bottom:10px;">اكتب اسماً مميزاً لهذا النموذج لتتمكن من استرجاعه في أي وقت:</p>
+            <input type="text" id="customTemplateNameInput" style="width:100%; padding:10px; border-radius:8px; border:1.5px solid #38bdf8; background:#1e293b; color:#fff; font-family:inherit; font-size:13px; box-sizing:border-box; outline:none; margin-bottom:14px;">
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button type="button" class="tool-btn" style="background:#059669; padding:8px 18px; font-weight:800;" onclick="executeSaveTemplateFromModal()">حفظ النموذج ✅</button>
+                <button type="button" class="tool-btn" style="background:#475569; padding:8px 14px;" onclick="document.getElementById('saveTemplateCustomModal').style.display='none'">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- شريط تنبيه الاسترجاع البسيط في الطرف -->
+<!-- شريط تنبيه الاسترجاع البسيط في الطرف - خارج مساحة العمل تماماً -->
+<div id="crashRecoveryBanner" style="display:none; position:fixed; bottom:20px; right:20px; background:#0f172a; border:1px solid #38bdf8; border-radius:10px; padding:12px 18px; box-shadow:0 10px 25px rgba(0,0,0,0.8); z-index:999999999; align-items:center; gap:14px; direction:rtl;">
+    <span style="font-size:18px;">⚠️</span>
+    <div>
+        <div style="font-size:12px; font-weight:800; color:#38bdf8;">استرجاع مسودة الاختبار</div>
+        <div style="font-size:11px; color:#94a3b8;">تم العثور على آخر جلسة عمل غير محفوظة.</div>
+    </div>
+    <div style="display:flex; gap:6px;">
+        <button type="button" class="tool-btn" style="background:#059669; padding:4px 10px; font-size:11px;" onclick="confirmRestoreCrash()">استرجاع</button>
+        <button type="button" class="tool-btn" style="background:#334155; padding:4px 10px; font-size:11px;" onclick="dismissCrashModal()">تجاهل</button>
+    </div>
+</div>
+
+    <!-- استدعاء ملفات الجافاسكريبت بالترتيب الصارم والمترابط -->
+    <script src="js/audio.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/question-manager.js"></script>
+    <script src="js/templates-math.js"></script>
+    <script src="js/ui-effects.js"></script>
+    <script src="js/speech-engine.js"></script>
+    <script src="js/preflight-checker.js"></script>
+    <script src="js/advanced-tools.js"></script>
+    <script src="js/lan-sharing.js"></script>
+    <script src="js/find-replace.js"></script>
+    <script src="js/app-print.js"></script>
+    <script src="js/editor-engine.js"></script>
+    <script src="js/app.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="js/ultimate-engine.js"></script>
+    <script src="js/completion-suite.js"></script>
+</body>
+</html>

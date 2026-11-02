@@ -1,0 +1,88 @@
+/* Examy PRO Ultimate completion layer: paragraph/table pagination, MathLive, AI assistant,
+   variant comparison and redesigned print preview. */
+(() => {
+'use strict';
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
+const toast=(m,t='info')=>window.UIEffects?.showToast?.(m,t,3200)||console.info(m);
+const undo=()=>window.recordUndoState?.();
+const pages=()=>$$('#sheetsWrapper .a4-sheet');
+const nextPage=()=>{let p=window.insertNewPageSheetManual?.(true);if(!p){const last=pages().at(-1);if(last){p=last.cloneNode(true);p.querySelector('.questions-stream')?.replaceChildren();p.id='';$('#sheetsWrapper')?.append(p);}}return p;};
+const streamOf=p=>$('.questions-stream',p);
+const overflow=el=>{if(!el)return false;const a=el.getBoundingClientRect(),b=el.parentElement?.getBoundingClientRect();return !!b&&a.bottom>b.bottom-3;};
+const cloneCard=(card)=>{const c=card.cloneNode(false);c.className=card.className+' question-continuation';c.removeAttribute('id');c.innerHTML='<div class="q-cont-label">(تابع السؤال السابق)</div><div class="text-area q-content-box" contenteditable="true" spellcheck="true"></div>';return c;};
+function splitTable(table,dest){const rows=$$('tr',table);if(rows.length<3)return false;const clone=table.cloneNode(false),body=document.createElement('tbody');clone.append(body);const sourceBody=table.tBodies[0]||table;if(rows[0]?.querySelector('th')){const head=rows[0].cloneNode(true);const thead=document.createElement('thead');thead.append(head);clone.insertBefore(thead,body);}const moveCount=Math.max(1,Math.floor((rows.length-1)/2));for(let i=0;i<moveCount;i++){const row=rows[rows.length-1-i];if(row&&row.parentElement===sourceBody)body.prepend(row);}if(!body.children.length)return false;dest.append(clone);return true;}
+function splitParagraph(block,dest){
+ const walker=document.createTreeWalker(block,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode())if(walker.currentNode.nodeValue.trim())nodes.push(walker.currentNode);if(!nodes.length)return false;
+ const all=nodes.map(n=>n.nodeValue).join('');if(all.length<50)return false;
+ let target=Math.floor(all.length*.58),acc=0,node=null,offset=0;for(const n of nodes){if(acc+n.length>=target){node=n;offset=target-acc;break;}acc+=n.length;}if(!node)return false;
+ const before=node.nodeValue.slice(0,offset),after=node.nodeValue.slice(offset);const cut=before.lastIndexOf(' ');if(cut>8)offset=acc+cut+1;
+ let count=0;acc=0;for(const n of nodes){if(acc+n.length>=offset){node=n;count=offset-acc;break;}acc+=n.length;}
+ const range=document.createRange();range.setStart(node,count);range.setEndAfter(block.lastChild||node);let fragment;try{fragment=range.extractContents();}catch{return false;}
+ const continuation=block.cloneNode(false);continuation.classList.add('examy-split-continuation');continuation.append(fragment);if(!continuation.textContent.trim())return false;dest.append(continuation);return true;
+}
+function splitOneCard(card, destStream){
+ const content=$('.q-content-box',card);if(!content)return false;
+ const continuation=cloneCard(card),dest=$('.q-content-box',continuation);
+ // First move whole trailing blocks; this preserves formatting and semantic structure.
+ while(content.children.length>1&&card.getBoundingClientRect().bottom>card.parentElement.getBoundingClientRect().bottom-3){dest.prepend(content.lastElementChild);}
+ if(!overflow(content)&&dest.childNodes.length){destStream.prepend(continuation);return true;}
+ const last=content.lastElementChild;
+ if(last?.tagName==='TABLE'&&card.getBoundingClientRect().bottom>card.parentElement.getBoundingClientRect().bottom-3){if(splitTable(last,dest)){destStream.prepend(continuation);return true;}}
+ const paragraphTarget=(last&&['P','DIV'].includes(last.tagName))?last:content;
+ if(paragraphTarget&&card.getBoundingClientRect().bottom>card.parentElement.getBoundingClientRect().bottom-3&&splitParagraph(paragraphTarget,dest)){ destStream.prepend(continuation);return true;}
+ if(dest.childNodes.length){destStream.prepend(continuation);return true;}
+ return false;
+}
+const U=window.ExamyUltimate=window.ExamyUltimate||{};
+U.flow=function(){
+ const list=pages();if(!list.length)return;
+ for(let i=0;i<list.length;i++){
+  const page=list[i],stream=streamOf(page);if(!stream)continue;let guard=0;
+  while(guard++<80){
+   const cards=$$('.question-container',stream);if(!cards.length)break;
+   const streamRect=stream.getBoundingClientRect();const last=cards.at(-1);if(last.getBoundingClientRect().bottom<=streamRect.bottom-2)break;
+   const destPage=list[i+1]||nextPage();if(!destPage)break;if(!list.includes(destPage))list.splice(i+1,0,destPage);
+   const destStream=streamOf(destPage);if(!destStream)break;
+   if(cards.length>1){destStream.prepend(cards.at(-1));continue;}
+   if(!splitOneCard(cards[0],destStream))break;
+  }
+ }
+ U.refreshPageNumbers?.();window.reindexAllQuestions?.();window.updateUIIndicators?.();
+};
+U.scheduleFlow=()=>{if(U._completeFlow)return;U._completeFlow=true;requestAnimationFrame(()=>{U._completeFlow=false;U.flow();});};
+document.addEventListener('examy:contentchange',U.scheduleFlow);
+
+// Visual equation editor powered by MathLive. The key is a real math-field, not a text placeholder.
+let mathLivePromise;
+function loadMathLive(){if(window.MathfieldElement)return Promise.resolve();if(mathLivePromise)return mathLivePromise;mathLivePromise=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='https://unpkg.com/mathlive';s.onload=resolve;s.onerror=()=>reject(new Error('تعذر تحميل محرر المعادلات؛ تحقق من الإنترنت'));document.head.append(s);});return mathLivePromise;}
+U.openEquationEditor=async()=>{
+ try{await loadMathLive();}catch(e){toast(e.message,'error');return;}
+ let dlg=$('#examyMathDialog');if(!dlg){dlg=document.createElement('div');dlg.id='examyMathDialog';dlg.className='examy-suite-overlay';dlg.innerHTML=`<section class="examy-suite-dialog math-dialog" dir="rtl"><header><div><small>EXAMY PRO / EQUATION STUDIO</small><h2>محرر المعادلات الرياضية</h2></div><button data-close>×</button></header><div class="math-toolbar"><button data-insert="\\frac{}{}">كسر</button><button data-insert="\\sqrt{}">جذر</button><button data-insert="x^{2}">أس</button><button data-insert="\\int_{}^{}">تكامل</button><button data-insert="\\sum_{}^{}">مجموع</button><button data-insert="\\pi">π</button><button data-insert="\\theta">θ</button><button data-insert="\\leq">≤</button></div><math-field id="examyMathField" virtual-keyboard-mode="manual">x=\\frac{-b\\pm\\sqrt{b^2-4ac}}{2a}</math-field><div class="math-preview"><span>معاينة مباشرة</span><math-field id="examyMathMirror" read-only virtual-keyboard-mode="off"></math-field></div><footer><button data-close class="suite-secondary">إلغاء</button><button id="examyMathInsert" class="suite-primary">إدراج المعادلة في الاختبار</button></footer></section>`;document.body.append(dlg);dlg.addEventListener('click',e=>{if(e.target===dlg||e.target.closest('[data-close]'))dlg.remove();const b=e.target.closest('[data-insert]');if(b)$('#examyMathField').insert(b.dataset.insert);});}
+ const field=$('#examyMathField');field.addEventListener('input',()=>{$('#examyMathMirror').value=field.value;});$('#examyMathMirror').value=field.value;
+ $('#examyMathInsert').onclick=()=>{const latex=field.value;if(!latex)return;const sel=getSelection();if(!sel?.rangeCount||!$('#sheetsWrapper')?.contains(sel.anchorNode)){toast('ضع المؤشر داخل نص سؤال أولاً','warning');return;}undo();const mf=document.createElement('math-field');mf.className='examy-math-inline';mf.value=latex;mf.textContent=latex;mf.setAttribute('aria-label','معادلة رياضية');mf.setAttribute('read-only','');mf.setAttribute('virtual-keyboard-mode','off');mf.setAttribute('dir','ltr');const range=sel.getRangeAt(0);range.deleteContents();range.insertNode(mf);range.setStartAfter(mf);range.collapse(true);sel.removeAllRanges();sel.addRange(range);dlg.remove();document.dispatchEvent(new Event('examy:contentchange'));};
+};
+
+// AI configuration is stored by the local server, never in browser localStorage.
+U.openAISettings=async()=>{
+ let dlg=$('#examyAISettings');if(!dlg){dlg=document.createElement('div');dlg.id='examyAISettings';dlg.className='examy-suite-overlay';dlg.innerHTML=`<section class="examy-suite-dialog" dir="rtl"><header><div><small>EXAMY PRO / AI STUDIO</small><h2>مساعد إنشاء الأسئلة بالذكاء الاصطناعي</h2></div><button data-close>×</button></header><p class="suite-muted">أدخل مفتاح API الخاص بك. سيُحفظ محلياً في مجلد قاعدة بيانات البرنامج ولا يُرسل إلى المتصفح عند الاسترجاع.</p><label>مفتاح API<input id="examyAIKey" type="password" autocomplete="new-password" placeholder="sk-..."></label><label>اسم النموذج<input id="examyAIModel" value="gpt-4o-mini"></label><div class="suite-ai-row"><label>المادة<input id="examyAISubject" placeholder="الرياضيات"></label><label>الصف<input id="examyAIGrade" placeholder="الثالث المتوسط"></label></div><label>الموضوع / وصف المطلوب<textarea id="examyAIPrompt" rows="4" placeholder="أنشئ 5 أسئلة متنوعة حول ..."></textarea></label><div class="suite-muted" id="examyAIStatus">يتطلب مفتاح API صالحاً واتصالاً بالإنترنت.</div><footer><button data-close class="suite-secondary">إغلاق</button><button id="examyAISave" class="suite-secondary">حفظ الإعدادات</button><button id="examyAIGenerate" class="suite-primary">إنشاء أسئلة</button></footer><div id="examyAIResult"></div></section>`;document.body.append(dlg);dlg.addEventListener('click',e=>{if(e.target===dlg||e.target.closest('[data-close]'))dlg.remove();});}
+ try{const cfg=await fetch('/api/ai/config').then(r=>r.json());$('#examyAIModel').value=cfg.model||'gpt-4o-mini';$('#examyAIStatus').textContent=cfg.configured?'يوجد مفتاح محفوظ. أدخل مفتاحاً جديداً لتغييره.':'لم يتم إعداد مفتاح API بعد.';}catch{$('#examyAIStatus').textContent='تعذر الوصول إلى خادم البرنامج المحلي.';}
+ $('#examyAISave').onclick=async()=>{const key=$('#examyAIKey').value.trim(),model=$('#examyAIModel').value.trim();if(!key){toast('أدخل مفتاح API لحفظ الإعدادات.','warning');return;}const r=await fetch('/api/ai/config',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({key,model})});const d=await r.json();toast(d.message||'تم حفظ الإعدادات',r.ok?'success':'error');$('#examyAIKey').value='';};
+ $('#examyAIGenerate').onclick=async()=>{const prompt=$('#examyAIPrompt').value.trim();if(!prompt){toast('اكتب وصف الأسئلة المطلوبة.','warning');return;}const out=$('#examyAIResult');out.textContent='جارٍ إنشاء الأسئلة...';try{const r=await fetch('/api/ai/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({subject:$('#examyAISubject').value,grade:$('#examyAIGrade').value,prompt})});const d=await r.json();if(!r.ok)throw new Error(d.error||'فشل إنشاء الأسئلة');out.innerHTML=`<div class="suite-ai-output"><h3>الأسئلة المقترحة</h3><pre></pre><button id="examyAIInsert" class="suite-primary">إدراج الأسئلة في المستند</button></div>`;$('.suite-ai-output pre',out).textContent=d.text;$('#examyAIInsert').onclick=()=>{const sel=getSelection();const html=d.text.split(/\n+/).filter(Boolean).map(x=>`<p>${x.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}</p>`).join('');const card=document.createElement('article');card.className='question-container';card.innerHTML=`<div class="q-title-badge"><span class="q-title-text">أسئلة مولدة بالذكاء الاصطناعي</span></div><div class="text-area q-content-box" contenteditable="true">${html}</div>`;const p=pages().at(-1);$('.questions-stream',p)?.append(card);window.makeQuestionDraggable?.(card);U.scheduleFlow();toast('تم إدراج الأسئلة. راجعها علمياً قبل اعتمادها.','success');};}catch(e){out.textContent=e.message;}}
+};
+
+// Detailed model comparison: unique/common questions and marks distribution.
+U.compareVariants=()=>{
+ const variants=$$('.examy-generated-variant');if(variants.length<2){toast('أنشئ نموذجين أو أكثر أولاً لإجراء المقارنة.','warning');return;}
+ const sets=variants.map((p,i)=>({name:p.querySelector('.hdr-center')?.textContent||`نموذج ${i+1}`,ids:new Set($$('.question-container',p).map(q=>q.dataset.questionId||q.querySelector('.q-title-text')?.textContent?.trim()||q.textContent.trim().slice(0,80))),count:$$('.question-container',p).length,marks:$$('.q-grade-badge',p).reduce((s,e)=>s+(Number((e.textContent.match(/[\d.]+/)||[])[0])||0),0)}));
+ const union=new Set(sets.flatMap(x=>[...x.ids]));const rows=sets.map((x,i)=>{const other=new Set(sets.filter((_,j)=>i!==j).flatMap(y=>[...y.ids]));const common=[...x.ids].filter(id=>other.has(id)).length;return `<tr><td>${x.name}</td><td>${x.count}</td><td>${x.marks}</td><td>${common}</td><td>${x.ids.size-common}</td></tr>`;}).join('');
+ let dlg=$('#examyVariantCompare');if(!dlg){dlg=document.createElement('div');dlg.id='examyVariantCompare';dlg.className='examy-suite-overlay';document.body.append(dlg);}dlg.innerHTML=`<section class="examy-suite-dialog" dir="rtl"><header><div><small>EXAMY PRO / ANALYTICS</small><h2>مقارنة نماذج الاختبار</h2></div><button data-close>×</button></header><p class="suite-muted">عدد الأسئلة الكلي الفريد عبر النماذج: ${union.size} · عدد النماذج: ${sets.length}</p><div class="suite-table-wrap"><table><thead><tr><th>النموذج</th><th>عدد الأسئلة</th><th>مجموع الدرجات</th><th>المشترك مع النماذج الأخرى</th><th>الأسئلة المنفردة</th></tr></thead><tbody>${rows}</tbody></table></div><footer><button data-close class="suite-primary">إغلاق</button></footer></section>`;dlg.addEventListener('click',e=>{if(e.target===dlg||e.target.closest('[data-close]'))dlg.remove();});
+};
+
+// Add commands to the existing ribbon and redesign preview chrome without replacing print logic.
+function addRibbon(){const nav=$('.ribbon-tabs-nav'),host=$('.ribbon-panels-host');if(!nav||!host||$('#examySuiteTab'))return;const tab=document.createElement('button');tab.type='button';tab.id='examySuiteTab';tab.className='r-tab-btn';tab.dataset.tab='suite';tab.textContent='🧠 الاستوديو الذكي';nav.append(tab);const panel=document.createElement('div');panel.id='rtab-suite';panel.className='ribbon-tab-panel';panel.innerHTML=`<section class="r-group"><b class="r-group-title">المعادلات والذكاء الاصطناعي</b><div class="r-group-row"><button class="tool-btn" data-suite="math">∑ محرر المعادلات المرئي</button><button class="tool-btn" data-suite="ai">✨ مساعد الذكاء الاصطناعي</button></div></section><section class="r-group"><b class="r-group-title">الصفحات والنماذج</b><div class="r-group-row"><button class="tool-btn" data-suite="flow">إعادة توزيع وتقسيم المحتوى</button><button class="tool-btn" data-suite="compare">مقارنة النماذج بالتفصيل</button></div></section>`;host.append(panel);/* app.js owns the single delegated ribbon-tab handler */panel.addEventListener('click',e=>{const b=e.target.closest('[data-suite]');if(!b)return;({math:U.openEquationEditor,ai:U.openAISettings,flow:U.flow,compare:U.compareVariants}[b.dataset.suite]||(()=>{}))();});}
+function redesignPreview(){const modal=$('#printPreviewModal');if(!modal||modal.dataset.suiteRedesigned)return;modal.dataset.suiteRedesigned='1';const bar=$('.preview-top-toolbar',modal);if(bar){const info=document.createElement('div');info.className='suite-preview-brand';info.innerHTML='<b>EXAMY PRO</b><span>استوديو معاينة المستند</span>';bar.prepend(info);const status=document.createElement('span');status.className='suite-preview-status';status.id='suitePreviewStatus';status.textContent='جاهز للطباعة';bar.append(status);}const viewport=$('.preview-viewport-scroll',modal);if(viewport){const shell=document.createElement('div');shell.className='suite-preview-shell';shell.innerHTML='<aside class="suite-preview-side"><h3>إعدادات المعاينة</h3><label>حجم الورق<select id="suitePreviewPaper"><option>A4</option><option>A3</option><option>Letter</option></select></label><label>الاتجاه<select id="suitePreviewOrientation"><option value="portrait">عمودي</option><option value="landscape">أفقي</option></select></label><label>تكبير المعاينة<input id="suitePreviewScale" type="range" min="40" max="130" value="90"></label><div class="suite-preview-count" id="suitePreviewCount">0 صفحة</div><button id="suitePreviewRefresh">تحديث المعاينة</button><button id="suitePreviewPrint">طباعة</button></aside><div class="suite-preview-canvas"></div>';const canvas=$('.suite-preview-canvas',shell);canvas.append(viewport);modal.append(shell);$('#suitePreviewPaper').value=$('#previewPaperSizeSelect')?.value||'A4';$('#suitePreviewPaper').onchange=e=>{const original=$('#previewPaperSizeSelect');if(original){original.value=e.target.value;original.dispatchEvent(new Event('change'));}};$('#suitePreviewScale').oninput=e=>{const z=Number(e.target.value)/100;$('#previewPagesHost').style.transform=`scale(${z})`;$('#previewZoomLabel').textContent=e.target.value+'%';};$('#suitePreviewRefresh').onclick=()=>{window.openPrintPreview?.();};$('#suitePreviewPrint').onclick=()=>{if(typeof window.promptDirectPrint==='function')window.promptDirectPrint();else window.print();};}}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{addRibbon();redesignPreview();},{once:true});else{addRibbon();redesignPreview();}
+window.addEventListener('load',()=>{addRibbon();redesignPreview();});
+const previewObserver=new MutationObserver(()=>{const n=$('#previewPagesHost')?.querySelectorAll('.a4-sheet').length||0;const el=$('#suitePreviewCount');if(el)el.textContent=`${n} صفحة`;});
+const observePreview=()=>{const h=$('#previewPagesHost');if(h)previewObserver.observe(h,{childList:true,subtree:true});};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',observePreview,{once:true});else observePreview();
+})();

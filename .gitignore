@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.env# Local AI credentials (never package or commit API keys)
+database/ai-config.json
+database/ai-config.json.tmp

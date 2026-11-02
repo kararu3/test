@@ -1,0 +1,31 @@
+[
+  {
+    "id": "BK-EN-1",
+    "title": "Q1/ Define five of the following terms:",
+    "type": "grid4",
+    "category": "Definitions",
+    "items": [
+      "1- Proof",
+      "2- Chemical Equation",
+      "3- Vegetative Reproduction",
+      "4- Al-Subaywan",
+      "5- Carbon Dioxide",
+      "6- Seed",
+      "7- Retina"
+    ]
+  },
+  {
+    "id": "BK-EN-2",
+    "title": "Q2/ Answer only two branches (10 marks per branch):",
+    "type": "text",
+    "category": "Branches",
+    "content": "A/ What are the steps of multiplying plants by grafting?\n\nB/ Draw and label the taste buds on the tongue.\n\nC/ Illustrate with a diagram the parts of the skeletal system."
+  },
+  {
+    "id": "BK-EN-3",
+    "title": "Q3/ Fill in the blanks for five of the following:",
+    "type": "text",
+    "category": "Blanks",
+    "content": "1- The resulting substances are located on the ..................................... of the arrow.\n2- ..................................... is the part of the embryo that grows later to form the stem.\n3- ..................................... plant is used naturally in treating diseases."
+  }
+]
