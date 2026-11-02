@@ -1,0 +1,81 @@
+/* Examy PRO — intelligent ribbon interaction layer */
+#mainToolbar.ribbon-toolbar-system{
+  position:sticky!important;
+  top:var(--titlebar-h,34px)!important;
+  z-index:9990!important;
+  isolation:isolate;
+  transition:box-shadow .28s ease,background .28s ease,transform .28s cubic-bezier(.2,.75,.25,1)!important;
+}
+#mainToolbar .ribbon-panels-host{
+  display:grid!important;
+  grid-template-rows:1fr;
+  transition:grid-template-rows .34s cubic-bezier(.2,.75,.25,1),opacity .24s ease,transform .34s cubic-bezier(.2,.75,.25,1)!important;
+  transform-origin:top center;
+  opacity:1;
+  transform:translateY(0);
+}
+#mainToolbar .ribbon-panels-host>.ribbon-tab-panel{
+  grid-row:1;
+  grid-column:1;
+  min-height:0!important;
+  overflow:hidden!important;
+  transition:opacity .22s ease,transform .32s cubic-bezier(.2,.75,.25,1)!important;
+}
+#mainToolbar.ribbon-collapsed .ribbon-panels-host{
+  grid-template-rows:0fr!important;
+  opacity:0!important;
+  transform:translateY(-9px) scaleY(.96)!important;
+  margin-top:0!important;
+  pointer-events:none!important;
+}
+#mainToolbar.ribbon-collapsed .ribbon-panels-host>.ribbon-tab-panel{
+  opacity:0!important;
+  transform:translateY(-7px)!important;
+  pointer-events:none!important;
+}
+#mainToolbar.ribbon-panel-open .ribbon-panels-host{
+  grid-template-rows:1fr!important;
+  opacity:1!important;
+  transform:translateY(0) scaleY(1)!important;
+  pointer-events:auto!important;
+}
+#mainToolbar .ribbon-tab-panel.active{min-height:0!important}
+#mainToolbar .r-tab-btn{position:relative!important;overflow:hidden}
+#mainToolbar .r-tab-btn::after{
+  content:"";position:absolute;inset:auto 18% 1px;height:2px;border-radius:9px;
+  background:linear-gradient(90deg,#38bdf8,#8b5cf6,#f472b6);
+  transform:scaleX(0);transform-origin:center;transition:transform .28s ease;
+}
+#mainToolbar .r-tab-btn:hover::after,#mainToolbar .r-tab-btn.active::after{transform:scaleX(1)}
+#mainToolbar .r-group{
+  transition:transform .28s cubic-bezier(.2,.8,.2,1),box-shadow .28s ease,border-color .28s ease!important;
+  animation:ribbonGroupIn .34s both;
+}
+#mainToolbar .r-group:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(37,99,235,.12)!important}
+#mainToolbar .r-group-row>.tool-btn,
+#mainToolbar .r-group-row>button{
+  transition:transform .18s ease,filter .18s ease,box-shadow .18s ease!important;
+}
+#mainToolbar .r-group-row>.tool-btn:hover,
+#mainToolbar .r-group-row>button:hover{transform:translateY(-2px) scale(1.025);filter:brightness(1.08)}
+#mainToolbar .ribbon-pin-toggle{
+  display:inline-flex!important;align-items:center;justify-content:center;gap:5px;
+  min-width:78px!important;padding:0 10px!important;border:1px solid rgba(99,102,241,.35)!important;
+  border-radius:9px!important;background:linear-gradient(135deg,#eef2ff,#dbeafe)!important;
+  color:#263b80!important;font-weight:900!important;box-shadow:0 3px 12px rgba(37,99,235,.12);
+  transition:all .25s ease!important;white-space:nowrap;
+}
+#mainToolbar .ribbon-pin-toggle:hover{transform:translateY(-2px);box-shadow:0 7px 17px rgba(37,99,235,.2)!important}
+#mainToolbar .ribbon-pin-toggle.is-pinned{
+  color:#fff!important;background:linear-gradient(120deg,#2563eb,#7c3aed)!important;
+  border-color:transparent!important;box-shadow:0 0 0 3px rgba(99,102,241,.13),0 6px 18px rgba(79,70,229,.25)!important;
+}
+#mainToolbar.ribbon-pinned{box-shadow:0 9px 28px rgba(37,99,235,.18)!important}
+@keyframes ribbonGroupIn{from{opacity:.55;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){
+ #mainToolbar,#mainToolbar *{animation:none!important;transition:none!important}
+}
+@media(max-width:760px){
+ #mainToolbar.ribbon-toolbar-system{top:var(--titlebar-h,34px)!important}
+ #mainToolbar .ribbon-pin-toggle{min-width:68px!important}
+}
