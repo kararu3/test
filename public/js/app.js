@@ -49,25 +49,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     let isLicenseValid = false;
-    let isUserAuthenticated = false;
 
     try {
         await updateLoadingProgress(20, "جاري تهيئة النواة وبصمة الجهاز...", 90);
         const hwid = getStableMachineHWID();
         const hwidElem = document.getElementById("hwidDisplay");
         if (hwidElem) hwidElem.textContent = hwid;
-
-        // فحص حساب المستخدم أولاً عبر نظام المشتركين الموجود على خادم الإدارة.
-        // عند تفعيل Remember Me تُستعاد بياناته المشفرة ثم يعاد التحقق منها سحابياً.
-        await updateLoadingProgress(34, "جاري التحقق من حساب المستخدم...", 90);
-        try {
-            if (window.ExamyAuth && typeof window.ExamyAuth.restore === 'function') {
-                isUserAuthenticated = await window.ExamyAuth.restore(hwid);
-            }
-        } catch (authStartupError) {
-            console.warn("تعذر استعادة تسجيل دخول المستخدم:", authStartupError);
-        }
-        window.examyUserAuthenticated = isUserAuthenticated;
 
         await updateLoadingProgress(45, "التحقق من حالة ترخيص النظام...", 100);
         
@@ -85,37 +72,21 @@ window.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
-        // معالجة حالة الترخيص بحيث تقبل الحروف الصغيرة والكبيرة وتعتمد وجود المفتاح
-        if (localLic && localLic.key && localLic.key.trim().length > 3) {
-            const licStatus = String(localLic.status || '').toUpperCase();
-            if (licStatus === "ACTIVE" || localLic.key.trim().length > 5) {
-                isLicenseValid = true;
-            } else {
-                try {
-                    if (typeof AppAPI !== 'undefined' && typeof AppAPI.verifyLicenseRemote === 'function') {
-                        const check = await AppAPI.verifyLicenseRemote(localLic.key, hwid);
-                        if (check && (check.valid === true || check.success === true)) {
-                            isLicenseValid = true;
-                        } else if (check && check.revoked === true) {
-                            isLicenseValid = false;
-                            localStorage.removeItem("exambuilder_license_data");
-                        } else {
-                            isLicenseValid = true; // استمرار العمل بالترخيص المحلي في حال عدم توفر إنترنت
-                        }
-                    } else {
-                        isLicenseValid = true;
-                    }
-                } catch (err) {
-                    isLicenseValid = true;
+        // المفتاح المحفوظ لا يمنح صلاحية محلية: يجب التحقق من حالته سحابياً عند كل تشغيل.
+        if (localLic && localLic.key && localLic.key.trim()) {
+            try {
+                const check = await AppAPI.verifyLicenseRemote(localLic.key.trim().toUpperCase(), hwid);
+                isLicenseValid = !!(check && (check.valid === true || check.success === true));
+                if (!isLicenseValid && check && [403, 404].includes(Number(check.status))) {
+                    localStorage.removeItem("exambuilder_license_data");
                 }
+            } catch (verifyError) {
+                isLicenseValid = false;
+                console.warn("تعذر التحقق السحابي من مفتاح Examy:", verifyError);
             }
         } else {
             isLicenseValid = false;
         }
-
-        // حساب المشترك هو مصدر الصلاحية الحالي: خادم إدارة المستخدمين يتحقق من
-        // التفعيل والتجميد والانتهاء وربط الجهاز، لذلك لا نطلب مفتاحاً منفصلاً مرة أخرى.
-        if (isUserAuthenticated) isLicenseValid = true;
 
         // استرجاع لغة التطبيق وتطبيقها فوراً لتجنب ظهور نافذة اختيار اللغة عند كل إقلاع
         const savedLang = localStorage.getItem('exambuilder_lang') || 'ar';
@@ -220,15 +191,8 @@ window.addEventListener('DOMContentLoaded', async () => {
                 splashScreen.style.display = "none";
 
                 window.examyLicenseValid = isLicenseValid;
-                if (!isUserAuthenticated) {
-                    // لا نعرض نافذة الترخيص قبل التحقق من حساب المشترك.
+                if (isLicenseValid) {
                     if (licenseModal) licenseModal.classList.remove("active");
-                    if (languageModal) languageModal.classList.remove("active");
-                    window.ExamyAuth?.show();
-                } else if (isLicenseValid) {
-                    if (licenseModal) licenseModal.classList.remove("active");
-
-                    // لا تظهر نافذة اللغة إذا كان المستخدم قد اختار لغته مسبقاً
                     if (!localStorage.getItem('exambuilder_lang') && languageModal) {
                         languageModal.classList.add("active");
                     } else if (languageModal) {
@@ -1521,6 +1485,13 @@ async function handleActivateBtn() {
 
     if (!keyInput || !feedback) return;
     const key = keyInput.value.trim().toUpperCase();
+    keyInput.value = key;
+
+    if (!/^EXAM-[A-Z0-9]{4}(?:-[A-Z0-9]{4}){3}$/.test(key)) {
+        feedback.style.color = "#ef4444";
+        feedback.textContent = "صيغة المفتاح غير صحيحة. مثال: EXAM-D9P4-2B9A-OU3I-T8JK";
+        return;
+    }
 
     if (!key) {
         if (typeof SoundFX !== 'undefined') SoundFX.trash();
@@ -1549,6 +1520,7 @@ async function handleActivateBtn() {
             };
 
             localStorage.setItem("exambuilder_license_data", JSON.stringify(licenseData));
+            window.examyLicenseValid = true;
             try {
                 if (AppAPI.saveLocalLicense) await AppAPI.saveLocalLicense(licenseData);
             } catch (localErr) {}
