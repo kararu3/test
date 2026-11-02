@@ -232,3 +232,46 @@ html,body{max-width:100%;overflow-x:hidden!important}
  #mainToolbar .r-tab-btn{flex:1 1 auto!important}
  #mainToolbar .r-group{flex:1 1 100%!important}
 }
+
+
+/* One horizontal command row: section tabs on the right, controls on the left. */
+#mainToolbar .ribbon-top-header{
+ display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+ grid-template-areas:"tabs controls"!important;flex-wrap:nowrap!important;
+ align-items:center!important;justify-content:stretch!important;gap:8px!important;
+ min-width:0!important;padding:0 0 6px!important;
+}
+#mainToolbar .ribbon-tabs-nav{
+ grid-area:tabs!important;display:flex!important;flex:1 1 auto!important;
+ flex-wrap:nowrap!important;justify-content:flex-start!important;align-items:center!important;
+ min-width:0!important;width:auto!important;max-width:100%!important;gap:3px!important;
+ overflow:hidden!important;white-space:nowrap!important;
+}
+#mainToolbar .r-tab-btn{
+ flex:0 1 auto!important;min-width:0!important;
+ padding:0 clamp(5px,.8vw,11px)!important;font-size:clamp(9px,.78vw,11px)!important;
+}
+#mainToolbar .ribbon-fixed-controls{
+ grid-area:controls!important;display:flex!important;flex:0 0 auto!important;
+ flex-wrap:nowrap!important;justify-content:flex-start!important;align-items:center!important;
+ min-width:max-content!important;gap:5px!important;direction:rtl!important;
+}
+#mainToolbar .ribbon-fixed-controls>*{flex-shrink:0!important}
+#mainToolbar .ribbon-fixed-controls>.tool-btn{
+ min-height:31px!important;padding:0 8px!important;font-size:10px!important;white-space:nowrap!important;
+}
+#mainToolbar .zoom-global-widget{min-height:31px!important;white-space:nowrap!important}
+#mainToolbar .zoom-select-input{min-width:54px!important}
+@media(max-width:900px){
+ #mainToolbar .ribbon-top-header{grid-template-columns:minmax(0,1fr) auto!important;gap:4px!important}
+ #mainToolbar .r-tab-btn{padding:0 5px!important;font-size:9px!important}
+ #mainToolbar .ribbon-fixed-controls{gap:3px!important}
+ #mainToolbar .ribbon-fixed-controls>.tool-btn{padding:0 5px!important;font-size:9px!important}
+}
+@media(max-width:680px){
+ #mainToolbar .ribbon-top-header{grid-template-columns:minmax(0,1fr) auto!important}
+ #mainToolbar .r-tab-btn{font-size:8px!important;padding:0 3px!important}
+ #mainToolbar .ribbon-fixed-controls>.tool-btn{font-size:8px!important;padding:0 4px!important}
+ #mainToolbar .zoom-global-widget{padding:0 3px!important}
+ #mainToolbar .zoom-select-input{min-width:43px!important;font-size:9px!important}
+}
