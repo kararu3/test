@@ -181,7 +181,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         try {
             fetchSystemMonitorStats();
             setInterval(fetchSystemMonitorStats, 2500);
-            setInterval(autoSaveExamSession, 30000);
+            setInterval(autoSaveExamSession, 60000);
             setTimeout(() => {
                 if (typeof bindAllQuestionsInteractions === 'function') bindAllQuestionsInteractions();
             }, 500);
@@ -281,27 +281,129 @@ window.dismissCrashModal = function() {
 document.addEventListener('DOMContentLoaded', () => {
     checkCrashRecovery();
 });
-// الحفظ التلقائي الفوري لبيانات العمل في localStorage
-window.triggerAutoSave = function() {
+// Intelligent AutoSave: wait until the user pauses, then save once.
+// A short idle debounce avoids writing localStorage for every keystroke.
+const EXAMY_AUTOSAVE_IDLE_MS = 1400;
+const EXAMY_AUTOSAVE_MAX_WAIT_MS = 12000;
+let examyAutoSaveIdleTimer = null;
+let examyAutoSaveMaxTimer = null;
+let examyAutoSaveDirty = false;
+let examyAutoSaveLastPayload = null;
+let examyAutoSaveStatusTimer = null;
+
+function getAutoSaveStatusElement() {
+    let el = document.getElementById('examyAutoSaveStatus');
+    if (!el) {
+        el = document.createElement('div');
+        el.id = 'examyAutoSaveStatus';
+        el.className = 'examy-autosave-status';
+        el.setAttribute('role', 'status');
+        el.setAttribute('aria-live', 'polite');
+        el.textContent = 'جاهز للحفظ';
+        document.body.appendChild(el);
+    }
+    return el;
+}
+
+function setAutoSaveStatus(message, state = 'saved') {
+    const el = getAutoSaveStatusElement();
+    el.textContent = message;
+    el.dataset.state = state;
+    el.classList.add('visible');
+    clearTimeout(examyAutoSaveStatusTimer);
+    if (state === 'saved') {
+        examyAutoSaveStatusTimer = setTimeout(() => el.classList.remove('visible'), 2600);
+    }
+}
+
+function writeExamAutoSaveNow() {
+    const wrapper = document.getElementById('sheetsWrapper');
+    if (!wrapper) return false;
+    const payload = wrapper.innerHTML;
+    if (!payload || payload.trim().length <= 50) return false;
+    if (payload === examyAutoSaveLastPayload &&
+        localStorage.getItem('exambuilder_autosave_payload') === payload) {
+        examyAutoSaveDirty = false;
+        return true;
+    }
     try {
-        const sheetsWrapper = document.getElementById("sheetsWrapper");
-        if (sheetsWrapper && sheetsWrapper.innerHTML.trim().length > 50) {
-            localStorage.setItem('exambuilder_autosave_payload', sheetsWrapper.innerHTML);
-        }
+        // Save the document first; metadata is updated only after a successful write.
+        localStorage.setItem('exambuilder_autosave_payload', payload);
+        const uid = (typeof examUid !== 'undefined' && examUid) ? examUid : '';
+        if (uid) localStorage.setItem('exambuilder_autosave_uid', uid);
+        localStorage.setItem('exambuilder_autosave_saved_at', new Date().toISOString());
+        examyAutoSaveLastPayload = payload;
+        examyAutoSaveDirty = false;
+        setAutoSaveStatus('✓ تم حفظ المسودة تلقائياً', 'saved');
+        return true;
     } catch (err) {
-        console.error("AutoSave Error:", err);
+        console.error('AutoSave Error:', err);
+        setAutoSaveStatus('تعذر الحفظ — مساحة التخزين ممتلئة', 'error');
+        return false;
+    }
+}
+
+function clearAutoSaveTimers() {
+    clearTimeout(examyAutoSaveIdleTimer);
+    clearTimeout(examyAutoSaveMaxTimer);
+    examyAutoSaveIdleTimer = null;
+    examyAutoSaveMaxTimer = null;
+}
+
+window.flushExamAutoSave = function() {
+    clearAutoSaveTimers();
+    if (!examyAutoSaveDirty) return true;
+    return writeExamAutoSaveNow();
+};
+
+window.triggerAutoSave = function() {
+    const wrapper = document.getElementById('sheetsWrapper');
+    if (!wrapper) return;
+    examyAutoSaveDirty = true;
+    setAutoSaveStatus('تغييرات غير محفوظة…', 'pending');
+    clearTimeout(examyAutoSaveIdleTimer);
+    examyAutoSaveIdleTimer = setTimeout(() => window.flushExamAutoSave(), EXAMY_AUTOSAVE_IDLE_MS);
+    // Do not postpone forever during continuous typing or repeated edits.
+    if (!examyAutoSaveMaxTimer) {
+        examyAutoSaveMaxTimer = setTimeout(() => window.flushExamAutoSave(), EXAMY_AUTOSAVE_MAX_WAIT_MS);
     }
 };
 
-// تشغيل الحفظ التلقائي مع كل كتابة أو تعديل داخل مساحة العمل
-document.addEventListener('input', () => {
-    window.triggerAutoSave();
+// Text edits: schedule one save after 1.4 seconds of inactivity.
+document.addEventListener('input', (event) => {
+    if (event.target && event.target.closest && event.target.closest('#sheetsWrapper')) {
+        window.triggerAutoSave();
+    }
+}, true);
+
+// Structural edits (add/remove questions, tables, images) are caught without
+// treating every click or toolbar hover as a document change.
+document.addEventListener('DOMContentLoaded', () => {
+    const wrapper = document.getElementById('sheetsWrapper');
+    if (!wrapper || typeof MutationObserver === 'undefined') return;
+    let observerQueued = false;
+    const observer = new MutationObserver((mutations) => {
+        if (observerQueued || !mutations.some(m => m.type === 'childList' || m.type === 'characterData')) return;
+        observerQueued = true;
+        Promise.resolve().then(() => {
+            observerQueued = false;
+            window.triggerAutoSave();
+        });
+    });
+    observer.observe(wrapper, { subtree: true, childList: true, characterData: true });
 });
 
-document.addEventListener('click', () => {
-    // حفظ تلقائي أيضاً عند أي تفاعل أو إضافة سؤال
-    window.triggerAutoSave();
+// Flush on leaving an edited field, switching tabs, minimizing, or closing.
+document.addEventListener('focusout', (event) => {
+    if (event.target && event.target.closest && event.target.closest('#sheetsWrapper')) {
+        if (examyAutoSaveDirty) setTimeout(() => window.flushExamAutoSave(), 120);
+    }
+}, true);
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') window.flushExamAutoSave();
 });
+window.addEventListener('pagehide', () => window.flushExamAutoSave());
+window.addEventListener('beforeunload', () => window.flushExamAutoSave());
 
 function setupGlobalEnterLineBreakHandler() {
     document.addEventListener('keydown', (e) => {
@@ -1206,13 +1308,14 @@ function dismissSavedSessionBackup() {
     localStorage.removeItem("examy_session_backup");
 }
 
-// حفظ نسخة احتياطية دورية كل دقيقة
+// نسخة استرداد إضافية كل دقيقة، مستقلة عن الحفظ بعد التوقف عن الكتابة.
 setInterval(() => {
     const stage = document.getElementById("sheetsWrapper");
-    if (stage && stage.querySelectorAll(".question-container").length > 0) {
-        localStorage.setItem("examy_session_backup", stage.innerHTML);
+    if (stage && stage.querySelectorAll(".question-container").length > 0 && examyAutoSaveDirty) {
+        try { localStorage.setItem("examy_session_backup", stage.innerHTML); }
+        catch (e) { console.warn("تعذر تحديث نسخة الاسترداد:", e); }
     }
-}, 30000);
+}, 60000);
 
 // 3. جدول اختصارات الكيبورد الشاملة والموسعة
 document.addEventListener('keydown', (e) => {
