@@ -390,7 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.triggerAutoSave();
         });
     });
-    observer.observe(wrapper, { subtree: true, childList: true, characterData: true });
+    observer.observe(wrapper, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['style', 'src', 'width', 'height', 'colspan', 'rowspan'] });
 });
 
 // Flush on leaving an edited field, switching tabs, minimizing, or closing.
