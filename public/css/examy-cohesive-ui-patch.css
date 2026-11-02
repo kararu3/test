@@ -1,0 +1,43 @@
+/* Examy PRO — cohesive theme + compact footer patch */
+:root{
+ --ex-bg:#eef2f9;--ex-surface:#fff;--ex-surface-2:#f5f7fc;--ex-border:#d5deee;
+ --ex-text:#20304d;--ex-muted:#637491;--ex-primary:#4f63e8;--ex-primary-hover:#394bd0;
+ --ex-shadow:0 5px 18px rgba(28,48,90,.08);
+}
+[data-theme="light"]{
+ --bg-screen:var(--ex-bg)!important;--toolbar-bg:#f8faff!important;
+ --card-surface:var(--ex-surface)!important;--card-surface-elevated:var(--ex-surface-2)!important;
+ --card-surface-subtle:#eaf0fb!important;--card-border:var(--ex-border)!important;
+ --text-primary:var(--ex-text)!important;--text-secondary:#344765!important;--text-muted:var(--ex-muted)!important;
+}
+[data-theme="dark"]{
+ --ex-bg:#0c1322;--ex-surface:#141f32;--ex-surface-2:#1b2a42;--ex-border:#2c3c57;
+ --ex-text:#eaf1ff;--ex-muted:#a7b5cc;--ex-primary:#7185ff;--ex-primary-hover:#8ea0ff;
+ --bg-screen:var(--ex-bg)!important;--toolbar-bg:#111b2c!important;
+ --card-surface:var(--ex-surface)!important;--card-surface-elevated:var(--ex-surface-2)!important;
+ --card-surface-subtle:#22324b!important;--card-border:var(--ex-border)!important;
+ --text-primary:var(--ex-text)!important;--text-secondary:#d2def2!important;--text-muted:var(--ex-muted)!important;
+}
+#mainToolbar.ribbon-toolbar-system{background:var(--ex-surface)!important;border:1px solid var(--ex-border)!important;box-shadow:var(--ex-shadow)!important}
+#mainToolbar .ribbon-top-header{background:var(--ex-surface-2)!important;border-bottom:1px solid var(--ex-border)!important}
+#mainToolbar .r-tab-btn{color:var(--ex-text)!important;background:transparent!important;border:1px solid transparent!important}
+#mainToolbar .r-tab-btn:hover{background:color-mix(in srgb,var(--ex-primary) 12%,var(--ex-surface))!important}
+#mainToolbar .r-tab-btn.active{background:var(--ex-primary)!important;color:#fff!important;border-color:var(--ex-primary)!important}
+#mainToolbar .r-group{background:var(--ex-surface)!important;border:1px solid var(--ex-border)!important;color:var(--ex-text)!important}
+#mainToolbar .r-group-title,#mainToolbar .r-group-row span{color:var(--ex-text)!important}
+#mainToolbar .tool-btn:not(.ribbon-pin-toggle){color:#fff!important;border:1px solid rgba(255,255,255,.16)!important}
+[data-theme="light"] #mainToolbar .tool-btn:not(.ribbon-pin-toggle){background:var(--ex-primary)!important}
+[data-theme="light"] #mainToolbar .tool-btn:not(.ribbon-pin-toggle):hover{background:var(--ex-primary-hover)!important}
+[data-theme="dark"] #mainToolbar .tool-btn:not(.ribbon-pin-toggle){background:#344766!important}
+[data-theme="dark"] #mainToolbar .tool-btn:not(.ribbon-pin-toggle):hover{background:#435a7d!important}
+#mainToolbar select,#mainToolbar input[type=number],#mainToolbar input[type=text]{background:var(--ex-surface-2)!important;color:var(--ex-text)!important;border:1px solid var(--ex-border)!important}
+#mainToolbar input[type=number]{appearance:auto;-webkit-appearance:auto;pointer-events:auto;user-select:text}
+#mainToolbar input[type=number]::-webkit-inner-spin-button,#mainToolbar input[type=number]::-webkit-outer-spin-button{-webkit-appearance:inner-spin-button;opacity:1}
+.bottom-action-bar{height:auto!important;min-height:52px!important;max-height:64px!important;padding:5px 14px!important;background:var(--ex-surface)!important;border-top:1px solid var(--ex-border)!important;box-shadow:0 -4px 18px rgba(28,48,90,.07)!important}
+.bottom-action-bar .bottom-bar-content{min-height:42px!important;height:auto!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;flex-wrap:nowrap!important}
+.bottom-action-bar .b-btn{min-height:34px!important;height:34px!important;padding:0 14px!important;border-radius:9px!important;font-size:12px!important;white-space:nowrap!important}
+.bottom-action-bar .system-monitor-hud{padding:5px 9px!important;gap:8px!important;border-radius:9px!important;font-size:10px!important}
+.bottom-action-bar .hud-item{gap:4px!important}
+.bottom-action-bar .stats-badges-group{gap:6px!important}
+.bottom-action-bar .stats-badge{padding:5px 9px!important;font-size:11px!important;border:1px solid var(--ex-border)!important;background:var(--ex-surface-2)!important;color:var(--ex-text)!important;border-radius:8px!important}
+@media(max-width:900px){.bottom-action-bar .system-monitor-hud{display:none!important}.bottom-action-bar .b-btn{padding:0 8px!important}}
