@@ -3308,3 +3308,17 @@ function deleteRibbonSelectedTemplate() {
 window.addEventListener('DOMContentLoaded', () => {
     setTimeout(syncRibbonTemplatesDropdown, 1200);
 });
+
+// EXAMY_KEY_INPUT_FORMATTER: format the license key as EXAM-XXXX-XXXX-XXXX-XXXX.
+document.addEventListener('DOMContentLoaded', () => {
+    const keyInput = document.getElementById('licenseKeyInput');
+    if (!keyInput || keyInput.dataset.examyFormatter === '1') return;
+    keyInput.dataset.examyFormatter = '1';
+    keyInput.addEventListener('input', () => {
+        let raw = keyInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        if (raw.startsWith('EXAM')) raw = raw.slice(4);
+        raw = raw.slice(0, 16);
+        const groups = raw.match(/.{1,4}/g) || [];
+        keyInput.value = 'EXAM-' + groups.join('-');
+    });
+});
