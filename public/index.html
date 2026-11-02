@@ -21,7 +21,6 @@
     <link rel="stylesheet" href="css/examy-command-center.css">
     <link rel="stylesheet" href="css/examy-polish-final.css">
     <link rel="stylesheet" href="css/examy-night-studio.css">
-    <link rel="stylesheet" href="css/examy-auth.css">
 </head>
 <body class="pos-top">
 
@@ -720,34 +719,6 @@
         </div>
     </div>
 
-    <!-- تسجيل الدخول إلى حساب المشترك عبر نظام الإدارة الحالي -->
-    <div id="accountLoginModal" class="fullscreen-overlay">
-        <div class="account-login-card" role="dialog" aria-modal="true" aria-labelledby="accountLoginTitle">
-            <div class="account-login-brand">
-                <div class="account-login-logo">🛡️</div>
-                <h2 id="accountLoginTitle">Examy <span style="color:#38bdf8">PRO</span></h2>
-                <p>سجّل الدخول باستخدام حسابك المعتمد لدى الإدارة</p>
-            </div>
-            <form id="accountLoginForm" autocomplete="on">
-                <label class="account-login-field">
-                    <span>اسم المستخدم</span>
-                    <input id="accountUsername" name="username" type="text" autocomplete="username" placeholder="اسم المستخدم" required>
-                </label>
-                <label class="account-login-field">
-                    <span>كلمة المرور</span>
-                    <input id="accountPassword" name="password" type="password" autocomplete="current-password" placeholder="كلمة المرور" required>
-                </label>
-                <label class="remember-row">
-                    <input id="rememberAccount" type="checkbox">
-                    <span>تذكرني على هذا الجهاز</span>
-                </label>
-                <button id="accountLoginButton" type="submit">تسجيل الدخول</button>
-                <div id="accountLoginFeedback" role="status" aria-live="polite"></div>
-            </form>
-            <div class="account-login-foot">يتم التحقق من حالة الحساب وصلاحيته من خادم الإدارة</div>
-        </div>
-    </div>
-
     <!-- نافذة الترخيص -->
     <div id="licenseModal" class="fullscreen-overlay">
         <div class="pro-license-card">
@@ -761,7 +732,7 @@
             <div class="pro-form-body">
                 <label class="pro-input-label">مفتاح تفعيل النسخة المعتمدة:</label>
                 <div class="pro-input-wrapper">
-                    <input type="text" id="licenseKeyInput" placeholder="EXAM-XXXX-XXXX-XXXX" spellcheck="false" autocomplete="off">
+                    <input type="text" id="licenseKeyInput" placeholder="EXAM-D9P4-2B9A-OU3I-T8JK" maxlength="24" autocapitalize="characters" spellcheck="false" autocomplete="off">
                 </div>
                 <button class="pro-activate-btn" onclick="handleActivateBtn()">
                     <span>تأكيد التفعيل وربط الترخيص</span> <span>←</span>
@@ -1269,7 +1240,6 @@
     <script src="js/find-replace.js"></script>
     <script src="js/app-print.js"></script>
     <script src="js/editor-engine.js"></script>
-    <script src="js/examy-auth.js"></script>
     <script src="js/app.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.8.0/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
