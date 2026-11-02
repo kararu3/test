@@ -2,8 +2,6 @@
  * إدارة اتصالات الـ API المتوافقة مع السيرفر المحلي وسيرفر الأدمن السحابي
  */
 const AppAPI = {
-    // مسار التراخيص الحالي، مع إبقائه دون تغيير للتوافق.
-    AUTH_REMOTE_URL: "https://scanner-license-server-production.up.railway.app",
     // المسار المباشر لخدمة exam في سيرفر Railway
     ADMIN_REMOTE_URL: "https://scanner-license-server-production.up.railway.app/api/exam",
     LOCAL_URL: "http://localhost:3000",
@@ -15,26 +13,6 @@ const AppAPI = {
             localStorage.setItem("EXAM_HWID_KEY", hwid);
         }
         return hwid;
-    },
-
-    async loginRemote(username, password, hardwareId) {
-        try {
-            const response = await fetch(`${this.AUTH_REMOTE_URL}/api/auth/verify`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password, hardwareId })
-            });
-            const data = await response.json().catch(() => ({}));
-            return {
-                success: response.ok && data.success === true,
-                message: data.message || (response.ok ? 'تعذر التحقق من الحساب' : 'تعذر تسجيل الدخول'),
-                status: response.status,
-                networkError: false
-            };
-        } catch (error) {
-            console.error('تعذر الاتصال بخادم حسابات Examy:', error);
-            return { success: false, networkError: true, status: 0, message: 'تعذر الاتصال بسيرفر الحسابات. تحقق من الإنترنت ثم حاول مجدداً.' };
-        }
     },
 
     async verifyLicenseRemote(key, hwid) {
