@@ -1,0 +1,76 @@
+/* Examy brand motion — subtle premium motion on the license activation card */
+.pro-license-card .pro-badge-header {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+.pro-license-card .pro-badge-header::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -60% auto -60% -35%;
+    width: 34%;
+    transform: rotate(22deg);
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.16), transparent);
+    animation: examyBrandShine 5.5s ease-in-out infinite;
+    pointer-events: none;
+}
+.pro-license-card .pro-shield-icon {
+    animation: examyShieldFloat 3.8s ease-in-out infinite;
+    transform-origin: center;
+    filter: drop-shadow(0 0 10px rgba(56,189,248,.28));
+}
+.pro-license-card .pro-app-brand h2 {
+    position: relative;
+    display: inline-block;
+    letter-spacing: .4px;
+    animation: examyWordReveal .85s cubic-bezier(.2,.8,.2,1) both;
+    text-shadow: 0 0 18px rgba(56,189,248,.16);
+}
+.pro-license-card .pro-app-brand h2 span {
+    display: inline-block;
+    background: linear-gradient(100deg,#fbbf24,#fff1a8,#f59e0b,#fde68a);
+    background-size: 220% auto;
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: examyProShimmer 4s linear infinite;
+}
+.pro-license-card .pro-form-body {
+    animation: examyFormRise .65s .12s ease both;
+}
+.pro-license-card .pro-activate-btn {
+    transition: transform .22s ease, filter .22s ease, box-shadow .22s ease;
+}
+.pro-license-card .pro-activate-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.08);
+    box-shadow: 0 12px 28px rgba(14,165,233,.25);
+}
+@keyframes examyBrandShine {
+    0%, 55% { left: -40%; opacity: 0; }
+    65% { opacity: 1; }
+    100% { left: 130%; opacity: 0; }
+}
+@keyframes examyShieldFloat {
+    0%,100% { transform: translateY(0) rotate(0); }
+    50% { transform: translateY(-5px) rotate(-3deg); }
+}
+@keyframes examyWordReveal {
+    from { opacity: 0; transform: translateY(9px); filter: blur(4px); }
+    to { opacity: 1; transform: translateY(0); filter: blur(0); }
+}
+@keyframes examyProShimmer {
+    to { background-position: 220% center; }
+}
+@keyframes examyFormRise {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .pro-license-card .pro-badge-header::after,
+    .pro-license-card .pro-shield-icon,
+    .pro-license-card .pro-app-brand h2,
+    .pro-license-card .pro-app-brand h2 span,
+    .pro-license-card .pro-form-body { animation: none !important; }
+}
