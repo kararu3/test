@@ -156,3 +156,51 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 @media(prefers-reduced-motion:reduce){
  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
 }
+
+/* Settings dialog: clear two-column workspace with a compact navigation rail. */
+#settingsModal .modal-dialog.modal-settings-pro{
+ width:min(1120px,96vw)!important;max-width:1120px!important;max-height:88vh!important;
+ display:flex!important;flex-direction:column!important;overflow:hidden!important;
+ border:1px solid var(--ex-ui-line)!important;border-radius:18px!important;
+ background:var(--ex-ui-surface)!important;color:var(--ex-ui-text)!important;
+ box-shadow:0 26px 80px rgba(5,15,35,.28)!important;
+}
+#settingsModal .dialog-top{
+ flex:0 0 auto!important;padding:14px 18px!important;border-bottom:1px solid var(--ex-ui-line)!important;
+ background:linear-gradient(110deg,var(--ex-ui-surface),var(--ex-ui-soft))!important;
+}
+#settingsModal .settings-body-layout{
+ display:grid!important;grid-template-columns:190px minmax(0,1fr)!important;gap:14px!important;
+ min-height:0!important;overflow:hidden!important;padding:14px!important;
+}
+#settingsModal .settings-sidebar-nav{
+ display:flex!important;flex-direction:column!important;gap:5px!important;padding:7px!important;
+ border:1px solid var(--ex-ui-line)!important;border-radius:12px!important;background:var(--ex-ui-bg)!important;
+ overflow:auto!important;
+}
+#settingsModal .s-tab-btn{
+ justify-content:flex-start!important;text-align:right!important;min-height:38px!important;padding:8px 10px!important;
+ border:1px solid transparent!important;border-radius:9px!important;background:transparent!important;
+ color:var(--ex-ui-muted)!important;font-weight:800!important;transition:all .18s ease!important;
+}
+#settingsModal .s-tab-btn:hover{background:var(--ex-ui-soft)!important;color:var(--ex-ui-text)!important}
+#settingsModal .s-tab-btn.active{background:linear-gradient(120deg,#4569ec,#7658df)!important;color:#fff!important}
+#settingsModal .settings-content-area{min-width:0!important;min-height:0!important;overflow:auto!important;padding:2px 4px 10px!important}
+#settingsModal .settings-section-card{
+ padding:15px!important;margin:0 0 12px!important;border:1px solid var(--ex-ui-line)!important;
+ border-radius:12px!important;background:var(--ex-ui-bg)!important;box-shadow:0 5px 16px rgba(20,40,80,.045)!important;
+}
+#settingsModal .settings-card-title{font-size:13px!important;font-weight:900!important;color:var(--ex-ui-text)!important;margin-bottom:12px!important}
+#settingsModal .field-row{padding:9px!important;border:1px solid var(--ex-ui-line)!important;border-radius:9px!important;background:var(--ex-ui-surface)!important}
+#settingsModal label{color:var(--ex-ui-muted)!important;font-weight:800!important}
+#settingsModal input:not([type=color]),#settingsModal select,#settingsModal textarea{
+ border:1px solid var(--ex-ui-line)!important;border-radius:8px!important;background:var(--ex-ui-surface)!important;
+ color:var(--ex-ui-text)!important;padding:8px!important;
+}
+#settingsModal button{transition:transform .17s ease,background .17s ease,box-shadow .17s ease!important}
+#settingsModal button:hover{transform:translateY(-1px)!important}
+@media(max-width:720px){
+ #settingsModal .settings-body-layout{grid-template-columns:1fr!important;overflow:auto!important}
+ #settingsModal .settings-sidebar-nav{flex-direction:row!important;flex-wrap:wrap!important}
+ #settingsModal .settings-content-area{overflow:visible!important}
+}
