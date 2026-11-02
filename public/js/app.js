@@ -107,12 +107,19 @@ window.addEventListener('DOMContentLoaded', async () => {
             applyLanguageMode(savedLang);
         }
 
-        await updateLoadingProgress(70, "جاري قراءة تعريفات الطابعات والشبكة...", 90);
+        await updateLoadingProgress(70, "جاري تهيئة إعدادات الطابعات والشبكة...", 90);
+        // Printer discovery must never block application startup.
+        // Some Windows printer drivers / offline network printers can leave this promise pending.
         try {
             if (typeof loadSystemPrintersToSettings === 'function') {
-                await loadSystemPrintersToSettings();
+                await Promise.race([
+                    Promise.resolve().then(() => loadSystemPrintersToSettings()),
+                    new Promise(resolve => setTimeout(resolve, 2500))
+                ]);
             }
-        } catch (e) {}
+        } catch (printerStartupError) {
+            console.warn("تأجيل تحميل الطابعات إلى ما بعد فتح البرنامج:", printerStartupError);
+        }
 
         await updateLoadingProgress(90, "استرجاع الإعدادات والقوالب...", 90);
         try { generateNewExamId(); } catch(e) {}
