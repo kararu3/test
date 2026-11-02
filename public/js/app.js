@@ -121,7 +121,20 @@ window.addEventListener('DOMContentLoaded', async () => {
             console.warn("تأجيل تحميل الطابعات إلى ما بعد فتح البرنامج:", printerStartupError);
         }
 
-        await updateLoadingProgress(90, "استرجاع الإعدادات والقوالب...", 90);
+        await updateLoadingProgress(90, "جاري فتح واجهة البرنامج...", 90);
+
+        // Reveal the workspace before restoring optional/heavy user data.
+        // This prevents a large saved template or DOM operation from trapping
+        // the user on the 90% splash screen.
+        if (splashScreen) {
+            splashScreen.style.opacity = '0';
+            splashScreen.style.pointerEvents = 'none';
+            setTimeout(() => {
+                splashScreen.classList.remove("active");
+                splashScreen.style.display = "none";
+            }, 220);
+        }
+        await new Promise(resolve => setTimeout(resolve, 260));
         try { generateNewExamId(); } catch(e) {}
         try { updateUIIndicators(); } catch(e) {}
         try { applyBorderToAllSheets(); } catch(e) {}
