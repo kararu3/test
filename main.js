@@ -20,11 +20,14 @@ function createWindow() {
         height: 880,
         minWidth: 1050,
         minHeight: 720,
+        // Match the native Windows title-bar overlay to the custom dark title bar.
+        // This also prevents Chromium's default white surface flashing above the app chrome.
+        backgroundColor: '#070b14',
         titleBarStyle: 'hidden',
         titleBarOverlay: {
-            color: '#0f172a',
+            color: '#070b14',
             symbolColor: '#f8fafc',
-            height: 32
+            height: 34
         },
         icon: path.join(__dirname, 'public', 'icon.png'),
         webPreferences: {
