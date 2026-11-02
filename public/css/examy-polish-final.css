@@ -37,7 +37,7 @@ body.pos-top #mainToolbar,body.pos-left #mainToolbar,body.pos-right #mainToolbar
 #mainToolbar .r-tab-btn{
  flex:0 1 auto!important;min-width:0!important;min-height:32px!important;height:32px!important;
  padding:0 10px!important;border:1px solid transparent!important;border-radius:9px!important;
- background:transparent!important;color:var(--ex-ui-muted)!important;font:800 11px/1.2 inherit!important;
+ background:transparent!important;color:var(--ex-ui-muted)!important;font-family:inherit!important;font-size:11px!important;font-weight:800!important;line-height:1.2!important;
  white-space:nowrap!important;transition:all var(--ex-motion-med) var(--ex-motion-ease)!important;
 }
 #mainToolbar .r-tab-btn:hover{background:var(--ex-ui-soft)!important;color:var(--ex-ui-text)!important;transform:translateY(-1px)!important}
