@@ -204,3 +204,31 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
  #settingsModal .settings-sidebar-nav{flex-direction:row!important;flex-wrap:wrap!important}
  #settingsModal .settings-content-area{overflow:visible!important}
 }
+
+
+/* Final ribbon interaction/layout hardening. */
+html,body{max-width:100%;overflow-x:hidden!important}
+#mainToolbar{max-width:100vw!important;overflow:visible!important}
+#mainToolbar .ribbon-top-header{min-width:0!important;max-width:100%!important}
+#mainToolbar .ribbon-tabs-nav{
+ flex:1 1 100%!important;min-width:0!important;max-width:100%!important;
+ flex-wrap:wrap!important;overflow:visible!important;white-space:normal!important;
+}
+#mainToolbar .r-tab-btn{pointer-events:auto!important;position:relative!important;z-index:2!important;cursor:pointer!important}
+#mainToolbar .ribbon-fixed-controls{flex:1 1 100%!important;min-width:0!important;max-width:100%!important;flex-wrap:wrap!important}
+#mainToolbar .ribbon-panels-host{min-width:0!important;max-width:100%!important;overflow:visible!important}
+#mainToolbar .ribbon-tab-panel{
+ min-width:0!important;max-width:100%!important;width:100%!important;
+ flex-wrap:wrap!important;overflow:visible!important;
+}
+#mainToolbar .r-group{min-width:0!important;max-width:100%!important;flex:0 1 auto!important}
+#mainToolbar .r-group-row{min-width:0!important;max-width:100%!important;flex-wrap:wrap!important}
+#mainToolbar .ribbon-tabs-nav::-webkit-scrollbar,
+#mainToolbar .ribbon-panels-host::-webkit-scrollbar{display:none!important}
+#mainToolbar .ribbon-tabs-nav,#mainToolbar .ribbon-panels-host{scrollbar-width:none!important}
+.custom-titlebar{z-index:20!important}
+#mainToolbar{position:relative!important;z-index:30!important}
+@media(max-width:760px){
+ #mainToolbar .r-tab-btn{flex:1 1 auto!important}
+ #mainToolbar .r-group{flex:1 1 100%!important}
+}
