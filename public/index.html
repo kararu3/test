@@ -847,6 +847,9 @@
                 <span class="toolbar-label">حجم الورق:</span>
                 <select id="previewPaperSizeSelect" onchange="handlePaperSizeChange(this.value)">
                     <option value="A4">A4</option>
+                    <option value="A3">A3</option>
+                    <option value="A5">A5</option>
+                    <option value="Letter">Letter</option>
                 </select>
                 <label id="previewBookletWrap" style="display:flex; align-items:center; gap:4px; cursor:pointer;">
                     <input type="checkbox" id="previewBookletToggle" onchange="handleBookletToggle(this.checked)">
@@ -1082,6 +1085,7 @@
                                     <option value="A4" selected>A4 (210 × 297 ملم)</option>
                                     <option value="A3">A3 (297 × 420 ملم)</option>
                                     <option value="Letter">Letter</option>
+                                    <option value="A5">A5 (148 × 210 ملم)</option>
                                 </select>
                             </div>
                             <div class="field-row" style="margin-top:16px;">
