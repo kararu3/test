@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, safeStorage } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { exec } = require('child_process');
@@ -89,6 +89,40 @@ app.on('second-instance', (event, commandLine) => {
         const openFile = getExamFilePathFromArgs(commandLine);
         if (openFile) handleFileOpen(openFile);
     }
+});
+
+// Remember Me: keep account credentials encrypted by Electron safeStorage.
+const rememberedAccountPath = path.join(app.getPath('userData'), 'examy-remembered-account.bin');
+ipcMain.handle('auth:get-remembered', () => {
+    try {
+        if (!safeStorage.isEncryptionAvailable() || !fs.existsSync(rememberedAccountPath)) return null;
+        const decrypted = safeStorage.decryptString(fs.readFileSync(rememberedAccountPath));
+        const value = JSON.parse(decrypted);
+        if (!value || typeof value.username !== 'string' || typeof value.password !== 'string') return null;
+        return { username: value.username, password: value.password };
+    } catch (error) {
+        console.warn('تعذر استرجاع بيانات تذكرني:', error.message);
+        return null;
+    }
+});
+ipcMain.handle('auth:save-remembered', (_event, credentials) => {
+    try {
+        if (!safeStorage.isEncryptionAvailable()) return { success: false, message: 'التخزين الآمن غير متاح على هذا الجهاز.' };
+        const username = String(credentials?.username || '').trim();
+        const password = String(credentials?.password || '');
+        if (!username || !password) return { success: false, message: 'بيانات الحساب غير مكتملة.' };
+        const encrypted = safeStorage.encryptString(JSON.stringify({ username, password }));
+        fs.writeFileSync(rememberedAccountPath, encrypted, { mode: 0o600 });
+        return { success: true };
+    } catch (error) {
+        return { success: false, message: error.message };
+    }
+});
+ipcMain.handle('auth:clear-remembered', () => {
+    try { if (fs.existsSync(rememberedAccountPath)) fs.unlinkSync(rememberedAccountPath); } catch (error) {
+        console.warn('تعذر حذف بيانات تذكرني:', error.message);
+    }
+    return { success: true };
 });
 
 ipcMain.handle('set-zoom-factor', (event, factor) => {
