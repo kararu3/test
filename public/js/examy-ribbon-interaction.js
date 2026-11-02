@@ -63,7 +63,10 @@
     pin.innerHTML = pinned ? '<span class="pin-symbol">📌</span><span>مثبّت</span>' : '<span class="pin-symbol">📍</span><span>تثبيت</span>';
     try { localStorage.setItem(KEY, pinned ? '1' : '0'); } catch (_) {}
     clearTimeout(idleTimer);
-    if (!pinned) {\n      showPanel();\n      idleTimer = setTimeout(collapsePanel, IDLE_MS);\n    }
+    if (!pinned) {
+      showPanel();
+      idleTimer = setTimeout(collapsePanel, IDLE_MS);
+    }
   }
 
   function init() {
