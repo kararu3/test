@@ -83,19 +83,29 @@
     pin.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); setPinned(!pinned); });
     controls.appendChild(pin);
 
+    // Hover reveals tools without changing the selected section.
     nav.addEventListener('pointerover', e => {
       const tab = e.target.closest('.r-tab-btn');
       if (!tab || !nav.contains(tab)) return;
+      showPanel();
+    });
+    nav.addEventListener('click', e => {
+      const tab = e.target.closest('.r-tab-btn');
+      if (!tab || !nav.contains(tab)) return;
       const key = tab.dataset.tab;
-      if (key) { activate(key, tab); showPanel(); }
+      if (key) activate(key, tab);
     });
     toolbar.addEventListener('pointerenter', resetIdle);
-    toolbar.addEventListener('pointermove', e => {
-      if (e.target.closest('button,select,input,label,.r-group')) resetIdle();
+    // Pointer movement alone is not considered an action.
+    toolbar.addEventListener('pointermove', () => {});
+    toolbar.addEventListener('focusin', e => {
+      if (e.target.closest('select,input,textarea')) resetIdle();
     });
-    toolbar.addEventListener('focusin', resetIdle);
     toolbar.addEventListener('click', e => {
       if (e.target.closest('button,select,input,label')) resetIdle();
+    });
+    toolbar.addEventListener('change', e => {
+      if (e.target.closest('select,input')) resetIdle();
     });
     toolbar.addEventListener('pointerleave', () => {
       if (!pinned) {
