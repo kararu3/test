@@ -109,7 +109,7 @@ function addAdvancedWorkspace(){
  $('#exAdvAI').onclick=openAIStudio;
  $('#exAdvAnswer').onclick=()=>{if(typeof AdvancedExamTools!=='undefined')AdvancedExamTools.generateStudentAnswerSheet()};
  $('#exAdvShuffle').onclick=()=>{if(typeof AdvancedExamTools!=='undefined')AdvancedExamTools.generateShuffleVersion('ب')};
- $('#exAdvBalance').onclick=()=>{if(typeof autoDistributeSpacing==='function')autoDistributeSpacing()};
+ $('#exAdvBalance').onclick=()=>{if(typeof AdvancedExamTools!=='undefined'&&window.activeQuestionCard)AdvancedExamTools.autoDistributeBranchGrades(window.activeQuestionCard);else if(typeof UIEffects!=='undefined')UIEffects.showToast('حدد سؤالاً أولاً لتوزيع درجات فروعه','info')};
  $('#exAdvSpacing').onclick=()=>{if(typeof autoDistributeSpacing==='function')autoDistributeSpacing()};
  $('#exAdvShrink').onclick=()=>{if(typeof PreFlightSystem!=='undefined')PreFlightSystem.smartShrinkPage()};
  $('#exAdvPreflight').onclick=()=>{if(typeof PreFlightSystem!=='undefined')PreFlightSystem.openPreflightModal()};
