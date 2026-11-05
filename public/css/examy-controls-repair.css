@@ -1,0 +1,9 @@
+/* Form controls must override body's inherited user-select:none; this was blocking numeric editing. */
+input,select,textarea,button,[contenteditable="true"]{
+  -webkit-user-select:text!important;user-select:text!important;
+  pointer-events:auto!important;touch-action:manipulation;
+}
+input[type="number"]{appearance:auto!important;-webkit-appearance:auto!important;cursor:text!important;caret-color:var(--text-primary,#111827)}
+input[type="number"]::-webkit-inner-spin-button,input[type="number"]::-webkit-outer-spin-button{-webkit-appearance:inner-spin-button!important;opacity:1!important;margin:0!important}
+input[type="range"]{cursor:pointer!important;touch-action:pan-y!important}
+input:disabled,select:disabled,textarea:disabled,button:disabled{pointer-events:none!important;opacity:.55!important}
