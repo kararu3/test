@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const root = path.join(__dirname, '..');
-const required = ['main.js','preload.js','server.js','public/index.html','public/js/editor-engine.js','public/js/ultimate-engine.js','public/css/examy-ultimate.css'];
+const required = ['main.js','preload.js','server.js','public/index.html','public/js/editor-engine.js','public/js/ultimate-engine.js','public/css/examy-ultimate.css','public/js/examy-controls-repair.js','public/css/examy-controls-repair.css'];
 for (const file of required) if (!fs.existsSync(path.join(root,file))) throw new Error('Missing '+file);
 for (const file of fs.readdirSync(path.join(root,'database')).filter(x=>x.endsWith('.json'))) {
   const raw=fs.readFileSync(path.join(root,'database',file),'utf8');
@@ -10,6 +10,13 @@ for (const file of fs.readdirSync(path.join(root,'database')).filter(x=>x.endsWi
 const html=fs.readFileSync(path.join(root,'public/index.html'),'utf8');
 if (!html.includes('js/editor-engine.js')) throw new Error('Editor engine not loaded');
 if (!html.includes('js/ultimate-engine.js')) throw new Error('Ultimate engine not loaded');
+
+const controlCss=fs.readFileSync(path.join(root,'public/css/examy-controls-repair.css'),'utf8');
+const controlJs=fs.readFileSync(path.join(root,'public/js/examy-controls-repair.js'),'utf8');
+if (!controlCss.includes('user-select:text!important')) throw new Error('Numeric/form controls must be text-selectable');
+if (!html.includes('js/examy-controls-repair.js') || !html.includes('css/examy-controls-repair.css')) throw new Error('Control repair assets not loaded');
+if (!controlJs.includes('ExamyControlAudit')) throw new Error('Control audit diagnostic missing');
+
 const ultimate=fs.readFileSync(path.join(root,'public/js/ultimate-engine.js'),'utf8');
 for (const feature of ['setPageSize','setMargins','setHeaderFooter','refreshPageNumbers','generateVariants','backup','restore','importDocument','insertTable']) if (!ultimate.includes(feature)) throw new Error('Missing Ultimate feature: '+feature);
 const state=fs.readFileSync(path.join(root,'public/js/state.js'),'utf8');
