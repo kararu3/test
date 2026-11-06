@@ -1,7 +1,7 @@
 /* Examy PRO Ribbon: hover preview, idle collapse and pin-to-stay. */
 (() => {
   'use strict';
-  const KEY = 'examy.ribbon.pinned.v1';
+  const KEY = 'examy.ribbon.pinned.v2';
   const IDLE_MS = 5000;
   let idleTimer = null;
   let pinned = false;
@@ -122,8 +122,13 @@
 
     const active = $('.r-tab-btn.active') || $('.r-tab-btn');
     if (active?.dataset.tab) activate(active.dataset.tab, active);
-    let saved = false;
-    try { saved = localStorage.getItem(KEY) === '1'; } catch (_) {}
+    // Keep the full ribbon visible on first launch. The user may explicitly
+    // unpin it later; that choice is then remembered under the v2 preference key.
+    let saved = true;
+    try {
+      const stored = localStorage.getItem(KEY);
+      if (stored !== null) saved = stored === '1';
+    } catch (_) {}
     setPinned(saved);
     if (!saved) {
       toolbar.classList.add('ribbon-collapsed');
