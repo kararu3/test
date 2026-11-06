@@ -184,7 +184,15 @@ api.restore=async(file)=>{
  api.setMargins(api.pageSettings.marginTop,api.pageSettings.marginRight,api.pageSettings.marginBottom,api.pageSettings.marginLeft);
  api.refreshPageNumbers();window.restoreUIStateAfterDomUpdate?.();toast('تمت استعادة النسخة الاحتياطية.','success');
 };
-api.snapshot=()=>{const history=JSON.parse(localStorage.getItem('examy_revision_history')||'[]');history.push({at:new Date().toISOString(),html:root()?.innerHTML||''});while(history.length>20)history.shift();localStorage.setItem('examy_revision_history',JSON.stringify(history));};
+api.snapshot=()=>{
+ try{
+  let history=[];try{const parsed=JSON.parse(localStorage.getItem('examy_revision_history')||'[]');if(Array.isArray(parsed))history=parsed}catch{}
+  const html=root()?.innerHTML||'';if(!html)return false;
+  history.push({at:new Date().toISOString(),html});
+  while(history.length>10||JSON.stringify(history).length>4*1024*1024)history.shift();
+  localStorage.setItem('examy_revision_history',JSON.stringify(history));return true;
+ }catch(error){console.warn('تعذر حفظ سجل المراجعات المحلي:',error);return false}
+};
 let saveTimer,revisionTimer;const autosave=()=>{clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{localStorage.setItem('examy_ultimate_autosave',JSON.stringify({at:Date.now(),html:root()?.innerHTML||''}));clearTimeout(revisionTimer);revisionTimer=setTimeout(()=>api.snapshot(),30000);}catch(e){console.warn('autosave quota',e)}},800);};
 document.addEventListener('input',e=>{if(e.target.closest('#sheetsWrapper'))autosave();});
 document.addEventListener('focusin',e=>{const el=e.target.closest?.('[contenteditable=\"true\"]');if(el)el.setAttribute('spellcheck','true');});
