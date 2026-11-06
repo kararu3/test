@@ -16,6 +16,7 @@ const sanitizeHTML=(html)=>{
  return template.innerHTML;
 };
 const api=window.ExamyUltimate=window.ExamyUltimate||{};
+api.sanitizeHTML=sanitizeHTML;
 
 // --- Page layout / numbering / section headers and footers ---
 const defaultPageSettings={size:localStorage.getItem('exambuilder_paper_size')||'A4',orientation:'portrait',marginTop:15,marginRight:15,marginBottom:15,marginLeft:15,numbering:'arabic',start:1};
