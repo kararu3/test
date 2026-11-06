@@ -80,6 +80,11 @@ const bridge = fs.readFileSync(path.join(root, 'public/js/examy-feature-bridge.j
 if (!bridge.includes('window.ExamyUltimate?.scheduleFlow?.()')) fail('Page flow bridge must call the active pagination engine');
 if (!bridge.includes('setTimeout(()=>URL.revokeObjectURL(url),30000)')) fail('Question bank download must not revoke its URL immediately');
 
+const apiClient = fs.readFileSync(path.join(root, 'public/js/api.js'), 'utf8');
+if (!apiClient.includes('replaceBank') || !apiClient.includes('replaceArchive')) fail('Bulk restore API methods missing');
+if (!app.includes('async function exportFullBackupZip') || !app.includes('async function handleFullBackupImport')) fail('Full backup export/restore workflow missing');
+if (!html.includes('onclick="importFullBackupZip()"')) fail('Backup restore control missing from the UI');
+
 const state = fs.readFileSync(path.join(root, 'public/js/state.js'), 'utf8');
 if (state.includes("require('electron')")) fail('Renderer must not import Electron directly');
 
