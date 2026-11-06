@@ -51,6 +51,10 @@ for (const token of ['isLoopbackRequest', 'requireLoopbackForAI', '10 * 1024 * 1
   if (!server.includes(token)) fail('Missing local API / LAN protection: ' + token);
 }
 
+const ribbon = fs.readFileSync(path.join(root, 'public/js/examy-ribbon-interaction.js'), 'utf8');
+if (!ribbon.includes("const KEY = 'examy.ribbon.pinned.v2'")) fail('Ribbon state migration key missing');
+if (!ribbon.includes('let saved = true')) fail('Ribbon must remain expanded on first launch');
+
 const app = fs.readFileSync(path.join(root, 'public/js/app.js'), 'utf8');
 if (!app.includes("!e.target.closest('.ribbon-tabs-nav')")) fail('Ribbon clicks must not trigger table deselection');
 if (!app.includes('Let the ribbon interaction module receive the bubbling event')) fail('Ribbon click must bubble to its interaction controller');
