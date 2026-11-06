@@ -47,7 +47,7 @@ for (const token of ['requestSingleInstanceLock', 'isTrustedSender', 'setPermiss
 if (main.includes('const cmd = `rundll32')) fail('Printer name must never be interpolated into a shell command');
 
 const server = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
-for (const token of ['isLoopbackRequest', 'requireLoopbackForAI', '10 * 1024 * 1024', '50 * 1024 * 1024', "req.path === '/lan/submit'"]) {
+for (const token of ['isLoopbackRequest', 'requireLoopbackForAI', '10 * 1024 * 1024', '50 * 1024 * 1024', "req.path === '/lan/submit'", "app.put('/api/bank/:lang'", "app.put('/api/archive/:lang'"]) {
   if (!server.includes(token)) fail('Missing local API / LAN protection: ' + token);
 }
 
