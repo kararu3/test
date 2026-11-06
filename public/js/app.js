@@ -2841,7 +2841,7 @@ async function exportFullBackupZip() {
         const localStorageData = {};
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i) || '';
-            if (/^(exambuilder_|examy[._])/.test(key) && !/(license|token|api.?key)/i.test(key)) {
+            if (/^(exambuilder_|examy[._])/.test(key) && !/(license|token|api.?key|autosave|revision_history)/i.test(key) && !/^exambuilder_bank_/.test(key) && !/^examy_archive(_db)?$/.test(key) && !/^examy_templates_vault$/.test(key) && !/^examy_default_user_template$/.test(key)) {
                 localStorageData[key] = localStorage.getItem(key);
             }
         }
@@ -2857,9 +2857,15 @@ async function exportFullBackupZip() {
                 templatesVault: readStoredJson('examy_templates_vault', []),
                 defaultTemplate: readStoredJson('examy_default_user_template', null)
             },
+            activeExam: {
+                meta: { id: examUid, title: document.querySelector('.main-title')?.innerText || 'اختبار جديد', lang: currentLang, numberSystem: currentNumberSystem, watermark: watermarkConfig, borderSettings: activeBorderSettings, frameInset: activeFrameInset, sheetBg: sheetBgConfig, paperSize: currentPaperSize, bookletMode: isBookletMode },
+                payloadHtml: document.getElementById('sheetsWrapper')?.innerHTML || ''
+            },
             localStorage: localStorageData
         };
-        const blob = new Blob([JSON.stringify(backupPackage, null, 2)], { type: 'application/json' });
+        const backupJson = JSON.stringify(backupPackage, null, 2);
+        if (new Blob([backupJson]).size > 50 * 1024 * 1024) throw new Error('حجم النسخة الاحتياطية تجاوز 50MB؛ قلّل حجم الأرشيف أو الصور ثم أعد المحاولة.');
+        const blob = new Blob([backupJson], { type: 'application/json' });
         downloadExamyBlob(blob, `Examy_PRO_Full_Backup_${Date.now()}.json`);
         if (typeof UIEffects !== 'undefined') UIEffects.showToast('تم تصدير الأرشيف وبنوك الأسئلة والقوالب والإعدادات.', 'success');
     } catch (error) {
@@ -2897,7 +2903,7 @@ async function handleFullBackupImport(event) {
         const legacyArchive = Array.isArray(backup.archive) ? backup.archive : [];
         const archiveAr = Array.isArray(archives.ar) ? archives.ar : legacyArchive;
         const archiveEn = Array.isArray(archives.en) ? archives.en : [];
-        if (!confirm('سيتم استبدال بنوك الأسئلة والأرشيف والقوالب الحالية بمحتويات النسخة الاحتياطية. هل تريد المتابعة؟')) return;
+        if (!confirm('سيتم استبدال بنوك الأسئلة والأرشيف والقوالب، واستعادة الاختبار المفتوح إن كان محفوظاً في النسخة. هل تريد المتابعة؟')) return;
 
         const failures = [];
         if (typeof AppAPI !== 'undefined' && AppAPI.replaceBank && AppAPI.replaceArchive) {
@@ -2931,6 +2937,31 @@ async function handleFullBackupImport(event) {
             });
         } catch (error) {
             failures.push('التخزين المحلي: ' + error.message);
+        }
+
+        if (backup.activeExam && typeof backup.activeExam.payloadHtml === 'string' && backup.activeExam.payloadHtml.trim()) {
+            try {
+                const meta = backup.activeExam.meta && typeof backup.activeExam.meta === 'object' ? backup.activeExam.meta : {};
+                document.getElementById('sheetsWrapper').innerHTML = sanitizeExamHtml(backup.activeExam.payloadHtml);
+                examUid = String(meta.id || examUid).slice(0, 120);
+                const idDisplay = document.getElementById('examIdSpan');
+                if (idDisplay) idDisplay.textContent = examUid;
+                if (meta.watermark) watermarkConfig = meta.watermark;
+                if (meta.borderSettings) activeBorderSettings = meta.borderSettings;
+                if (meta.sheetBg) sheetBgConfig = meta.sheetBg;
+                if (meta.frameInset) activeFrameInset = meta.frameInset;
+                if (meta.numberSystem) changeNumberSystem(meta.numberSystem);
+                if (meta.paperSize && ['A4','A3','A5','Letter','Legal','Tabloid','Executive','B5'].includes(meta.paperSize)) handlePaperSizeChange(meta.paperSize);
+                if (typeof meta.bookletMode !== 'undefined') handleBookletToggle(!!meta.bookletMode);
+                if (typeof restoreUIStateAfterDomUpdate === 'function') restoreUIStateAfterDomUpdate();
+                if (typeof applyBorderToAllSheets === 'function') applyBorderToAllSheets();
+                if (typeof applyWatermarkSettings === 'function') applyWatermarkSettings();
+                if (typeof applySheetBgSettings === 'function') applySheetBgSettings();
+                if (typeof reindexAllQuestions === 'function') reindexAllQuestions();
+                if (typeof updateUIIndicators === 'function') updateUIIndicators();
+            } catch (error) {
+                failures.push('الاختبار المفتوح: ' + error.message);
+            }
         }
 
         if (typeof loadArchiveFromDb === 'function') await loadArchiveFromDb();
