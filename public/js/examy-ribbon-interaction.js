@@ -42,10 +42,15 @@
     toolbar.classList.remove('ribbon-panel-open');
   }
 
+  function hasFocusedFormControl() {
+    const active = document.activeElement;
+    return !!(active && active.matches && active.matches('input,select,textarea,[contenteditable="true"]'));
+  }
   function resetIdle() {
     clearTimeout(idleTimer);
     if (pinned) return;
     showPanel();
+    if (hasFocusedFormControl()) return;
     idleTimer = setTimeout(collapsePanel, IDLE_MS);
   }
 
@@ -113,7 +118,12 @@
     toolbar.addEventListener('pointerleave', () => {
       if (!pinned) {
         clearTimeout(idleTimer);
-        idleTimer = setTimeout(collapsePanel, IDLE_MS);
+        if (!hasFocusedFormControl()) idleTimer = setTimeout(collapsePanel, IDLE_MS);
+      }
+    });
+    toolbar.addEventListener('focusout', e => {
+      if (e.target.closest('input,select,textarea,[contenteditable="true"]')) {
+        setTimeout(() => { if (!hasFocusedFormControl()) resetIdle(); }, 0);
       }
     });
     document.addEventListener('keydown', e => {
