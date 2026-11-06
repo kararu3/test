@@ -41,7 +41,7 @@
 @media(max-width:800px){.examy-archive-card{align-items:flex-start;flex-direction:column}.examy-archive-actions{width:100%}}
 
 /* Reserve the live ribbon's measured height so zoom/font changes never push it over the page. */
-#appStage{margin-top:8px!important;padding-top:0!important;scroll-margin-top:calc(var(--titlebar-h,34px) + var(--examy-ribbon-height,110px) + 8px)!important}
+#appStage{margin-top:16px!important;padding-top:0!important;scroll-margin-top:calc(var(--titlebar-h,34px) + var(--examy-ribbon-height,110px) + 8px)!important}
 body.in-preview .examy-shape-object button{display:none!important}
 
 /* Strong, always-visible function colors for every action button in the ribbon. */
