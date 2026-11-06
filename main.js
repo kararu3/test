@@ -2,6 +2,7 @@
 
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
+const { fileURLToPath } = require('url');
 const fs = require('fs');
 const { execFile } = require('child_process');
 
@@ -127,7 +128,7 @@ function createWindow() {
         try {
             const target = new URL(navigationUrl);
             isAppFile = target.protocol === 'file:' &&
-                path.resolve(decodeURIComponent(target.pathname)) === path.resolve(path.join(__dirname, 'public', 'index.html'));
+                path.resolve(fileURLToPath(target)) === path.resolve(path.join(__dirname, 'public', 'index.html'));
         } catch (_) {}
         if (!isAppFile) event.preventDefault();
     });
