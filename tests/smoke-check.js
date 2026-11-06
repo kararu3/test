@@ -95,6 +95,7 @@ const shapeStudio = fs.readFileSync(path.join(root, 'public/js/examy-shape-studi
 const uiBehavior = fs.readFileSync(path.join(root, 'public/js/examy-ui-behavior.js'), 'utf8');
 const behaviorCss = fs.readFileSync(path.join(root, 'public/css/examy-ui-behavior.css'), 'utf8');
 if (!app.includes('AppAPI.saveExamArchive') || !app.includes('getUnifiedArchiveRecord') || !app.includes('AppAPI.replaceArchive')) fail('Archive must save, merge, rename/delete and restore from unified local/server records');
+if ((app.match(/async function renderArchiveData\(/g) || []).length !== 1 || (app.match(/async function loadExamFromArchive\(/g) || []).length !== 1) fail('Only one authoritative archive render/restore implementation may remain');
 if (!shapeStudio.includes('أشكال هندسية') || !shapeStudio.includes('أشكال ورموز رياضية') || !shapeStudio.includes('أشكال عربية وزخرفية') || !shapeStudio.includes('examy-shape-object')) fail('Editable shape gallery categories or page objects missing');
 if (!shapeStudio.includes('shape-resize-handle') || !shapeStudio.includes('shape-rotate-handle')) fail('Shape resize/rotation controls missing');
 if (!uiBehavior.includes('tabBtnTableDesign') || !uiBehavior.includes('showTableTab(null)')) fail('Table design tab must be contextual');
