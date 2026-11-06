@@ -20,9 +20,9 @@ This branch contains targeted fixes based on the current repository. It is not r
 
 ## Verification status
 
-The test suite now checks required files, JSON database validity, JavaScript syntax, ribbon navigation wiring, Electron hardening, local API restrictions, and presence of core editor features.
+The test suite now checks required files, JSON database validity, JavaScript syntax, ribbon navigation wiring, Electron hardening, local API restrictions, full backup/restore routes, and presence of core editor features. A source-level validation pass compiled all 28 JavaScript files successfully and verified that all 39 local JavaScript/CSS references in the HTML entry point exist. The package and lockfile versions also match.
 
-**The automated workflow has not yet reported a successful run.** The app has also not been exercised here on a Windows desktop with a real printer, a multi-page exam, microphone permission prompts, or two devices on the same LAN. Those are required before calling the build complete or claiming 100% correctness.
+**The actual npm test command and Windows installer workflow have not yet reported a successful run.** The app has also not been exercised here on a Windows desktop with a real printer, a multi-page exam, microphone permission prompts, or two devices on the same LAN. Those are required before calling the build complete or claiming 100% correctness.
 
 ## Required acceptance tests before release
 
