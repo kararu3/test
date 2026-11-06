@@ -2386,65 +2386,241 @@ function applyTemplateData(t) {
 }
 
 window.saveExamToDb = async function() {
+    const titleEl = document.querySelector(".main-title");
+    const defaultTitle = titleEl?.innerText.trim() || "اختبار جديد";
+    const customExamName = prompt("اكتب اسماً لحفظ هذا الاختبار في الأرشيف:", defaultTitle);
+    if (!customExamName || !customExamName.trim()) return;
+
+    const sheetsWrapper = document.getElementById("sheetsWrapper");
+    if (!sheetsWrapper) { alert("لم يتم العثور على صفحات الاختبار."); return; }
+    if (typeof window.flushExamAutoSave === 'function' && !window.flushExamAutoSave()) {
+        throw new Error("تعذر حفظ المسودة قبل الأرشفة؛ تحقق من مساحة التخزين.");
+    }
+    if (typeof recordUndoState === 'function') recordUndoState();
+
+    const lang = (typeof currentLang !== 'undefined' && currentLang === 'en') ? 'en' : 'ar';
+    const record = {
+        id: String((typeof examUid !== 'undefined' && examUid) ? examUid : ("EX-" + Date.now())),
+        exam_id: String((typeof examUid !== 'undefined' && examUid) ? examUid : ("EX-" + Date.now())),
+        title: customExamName.trim(),
+        date: new Date().toLocaleDateString('ar-IQ'),
+        created_at: new Date().toLocaleDateString('ar-IQ'),
+        lang,
+        htmlPayload: sheetsWrapper.innerHTML,
+        html_content: sheetsWrapper.innerHTML,
+        savedAt: new Date().toISOString()
+    };
+
+    const readList = key => {
+        try { const value = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(value) ? value : []; }
+        catch (_) { return []; }
+    };
+    const normalize = item => ({
+        ...item,
+        id: String(item.id || item.exam_id || ''),
+        title: String(item.title || 'اختبار بدون عنوان'),
+        date: item.date || item.created_at || '',
+        lang: item.lang || lang,
+        htmlPayload: item.htmlPayload || item.html_content || ''
+    });
+    const local = [...readList('examy_archive'), ...readList('examy_archive_db')].map(normalize);
+    const merged = new Map(local.filter(x => x.id).map(x => [x.id, x]));
+    merged.set(record.id, record);
+    const localList = Array.from(merged.values());
+    localStorage.setItem('examy_archive', JSON.stringify(localList));
+    localStorage.setItem('examy_archive_db', JSON.stringify(localList));
+
+    let serverSaved = false;
     try {
-        if (typeof SoundFX !== 'undefined' && SoundFX && typeof SoundFX.pop === 'function') {
-            try { SoundFX.pop(); } catch(e) {}
-        }
-        
-        const titleEl = document.querySelector(".main-title");
-        const defaultTitle = titleEl ? titleEl.innerText.trim() : "اختبار جديد";
-        const customExamName = prompt("اكتب اسماً لحفظ هذا الاختبار في الأرشيف:", defaultTitle);
-        if (!customExamName || !customExamName.trim()) return;
+        const result = await AppAPI.saveExamArchive(lang, {
+            id: record.id, title: record.title, date: record.date,
+            htmlPayload: record.htmlPayload, lang
+        });
+        if (!result || result.success !== true) throw new Error(result?.message || 'رفض الخادم حفظ الاختبار');
+        serverSaved = true;
+    } catch (error) {
+        console.warn('[Examy Archive] تم الحفظ محلياً فقط:', error);
+    }
 
-        if (typeof recordUndoState === 'function') recordUndoState();
-        if (typeof SoundFX !== 'undefined' && SoundFX.success) SoundFX.success();
-
-        const sheetsWrapper = document.getElementById("sheetsWrapper");
-        if (!sheetsWrapper) {
-            alert("خطأ: لم يتم العثور على محتوى الصفحات للحفظ!");
-            return;
-        }
-
-        const payload = sheetsWrapper.innerHTML;
-        const record = {
-            id: typeof examUid !== 'undefined' && examUid ? examUid : "EX-" + Math.floor(100000 + Math.random() * 900000),
-            title: customExamName.trim(),
-            date: new Date().toLocaleDateString('ar-IQ'),
-            lang: typeof currentLang !== 'undefined' ? currentLang : 'ar',
-            htmlPayload: payload,
-            savedAt: new Date().toISOString()
-        };
-
-        let localArchive = [];
-        try {
-            const rawArchive = localStorage.getItem('examy_archive');
-            if (rawArchive) {
-                localArchive = JSON.parse(rawArchive);
-                if (!Array.isArray(localArchive)) localArchive = [];
-            }
-        } catch (e) {
-            localArchive = [];
-        }
-
-        const existingIndex = localArchive.findIndex(item => item.id === record.id);
-        if (existingIndex !== -1) {
-            localArchive[existingIndex] = record;
-        } else {
-            localArchive.unshift(record);
-        }
-        
-        localStorage.setItem('examy_archive', JSON.stringify(localArchive));
-
-        if (typeof UIEffects !== 'undefined' && UIEffects.showToast) {
-            UIEffects.showToast(`تم حفظ [${record.title}] في الأرشيف بنجاح!`, 'success');
-        } else {
-            alert(`تم حفظ [${record.title}] في الأرشيف بنجاح!`);
-        }
-    } catch (err) {
-        console.error("Save Exam Error:", err);
-        alert("حدث خطأ أثناء حفظ الملف في الأرشيف: " + (err.message || "خطأ غير معروف"));
+    if (typeof SoundFX !== 'undefined') SoundFX.success();
+    if (typeof UIEffects !== 'undefined') {
+        UIEffects.showToast(serverSaved
+            ? 'تم حفظ الاختبار في الأرشيف المحلي وقاعدة البيانات.'
+            : 'تم حفظ الاختبار محلياً، لكن تعذر مزامنة قاعدة بيانات الأرشيف.', serverSaved ? 'success' : 'warning', 4500);
+    } else {
+        alert(serverSaved ? 'تم حفظ الاختبار في الأرشيف.' : 'تم حفظ الاختبار محلياً فقط؛ تحقق من تشغيل خادم البيانات.');
     }
 };
+
+async function renderArchiveData(filter = "") {
+    const host = document.getElementById("archiveCardsHost");
+    if (!host) return;
+    host.innerHTML = '<div class="examy-archive-loading">جاري تحميل الأرشيف…</div>';
+    const readList = key => {
+        try { const value = JSON.parse(localStorage.getItem(key) || '[]'); return Array.isArray(value) ? value : []; }
+        catch (_) { return []; }
+    };
+    const normalize = item => ({
+        ...item,
+        id: String(item?.id || item?.exam_id || ''),
+        title: String(item?.title || 'اختبار بدون عنوان'),
+        date: item?.date || item?.created_at || '',
+        lang: item?.lang || currentLang || 'ar',
+        htmlPayload: item?.htmlPayload || item?.html_content || ''
+    });
+    const mergeById = (...lists) => {
+        const map = new Map();
+        lists.flat().map(normalize).filter(x => x.id).forEach(item => {
+            const prior = map.get(item.id);
+            map.set(item.id, prior ? { ...prior, ...item, htmlPayload: item.htmlPayload || prior.htmlPayload } : item);
+        });
+        return Array.from(map.values());
+    };
+
+    let items = [];
+    if (activeArchiveTab === "full") {
+        let serverItems = [];
+        try {
+            const response = await AppAPI.fetchArchive(currentLang);
+            if (Array.isArray(response)) serverItems = response;
+        } catch (error) { console.warn('[Examy Archive] تعذر تحميل أرشيف الخادم:', error); }
+        items = mergeById(serverItems, readList('examy_archive'), readList('examy_archive_db'));
+        host.innerHTML = '';
+        const query = String(filter || '').trim().toLowerCase();
+        const filtered = items.filter(item => !query ||
+            item.id.toLowerCase().includes(query) || item.title.toLowerCase().includes(query));
+        if (!filtered.length) {
+            host.innerHTML = '<div class="examy-archive-empty"><strong>لا توجد نماذج اختبار محفوظة</strong><span>احفظ الاختبار الحالي ليظهر هنا.</span></div>';
+            return;
+        }
+        filtered.forEach(item => {
+            const box = document.createElement('article');
+            box.className = 'examy-archive-card';
+            const info = document.createElement('div');
+            info.className = 'examy-archive-info';
+            const title = document.createElement('strong'); title.textContent = item.title;
+            const meta = document.createElement('small'); meta.textContent = 'المعرف: ' + item.id + '  |  التاريخ: ' + (item.date || '--');
+            info.append(title, meta);
+            const actions = document.createElement('div'); actions.className = 'examy-archive-actions';
+            const makeButton = (label, action, kind) => {
+                const button = document.createElement('button'); button.type = 'button';
+                button.className = 'tool-btn ' + kind; button.textContent = label;
+                button.addEventListener('click', action); return button;
+            };
+            actions.append(
+                makeButton('✏️ تسمية', () => renameExamInArchive(item.id), 'examy-action-edit'),
+                makeButton('استرجاع 📥', () => loadExamFromArchive(item.id), 'examy-action-open'),
+                makeButton('حذف 🗑️', () => deleteExamFromArchive(item.id), 'examy-action-delete')
+            );
+            box.append(info, actions); host.appendChild(box);
+        });
+    } else {
+        let bank = [];
+        try { bank = await AppAPI.fetchBank(currentLang); } catch (_) {}
+        if (!Array.isArray(bank) || !bank.length) bank = readList(`exambuilder_bank_${currentLang}`);
+        host.innerHTML = '';
+        const query = String(filter || '').trim().toLowerCase();
+        const filtered = bank.filter(item => !query ||
+            String(item.title || '').toLowerCase().includes(query) ||
+            String(item.category || '').toLowerCase().includes(query));
+        if (!filtered.length) {
+            host.innerHTML = '<div class="examy-archive-empty"><strong>لا توجد أسئلة فردية في هذا البنك</strong></div>';
+            return;
+        }
+        filtered.forEach(item => {
+            const box = document.createElement('article'); box.className = 'examy-archive-card';
+            const info = document.createElement('div'); info.className = 'examy-archive-info';
+            const title = document.createElement('strong'); title.textContent = item.title || 'سؤال';
+            const meta = document.createElement('small'); meta.textContent = 'النوع: ' + (item.type || '--') + ' | الفئة: ' + (item.category || 'عام');
+            info.append(title, meta);
+            const button = document.createElement('button'); button.type = 'button'; button.className = 'tool-btn examy-action-open'; button.textContent = 'إدراج ➕';
+            button.addEventListener('click', () => { createNewQuestion(item); closeArchiveDialog(); });
+            box.append(info, button); host.appendChild(box);
+        });
+    }
+}
+
+async function getUnifiedArchiveRecord(id) {
+    const keys = ['examy_archive', 'examy_archive_db'];
+    for (const key of keys) {
+        try {
+            const list = JSON.parse(localStorage.getItem(key) || '[]');
+            if (Array.isArray(list)) {
+                const item = list.find(x => String(x.id || x.exam_id || '') === String(id));
+                if (item) return { ...item, id: String(item.id || item.exam_id), htmlPayload: item.htmlPayload || item.html_content || '' };
+            }
+        } catch (_) {}
+    }
+    try {
+        const server = await AppAPI.fetchArchive(currentLang);
+        if (Array.isArray(server)) {
+            const item = server.find(x => String(x.id || x.exam_id || '') === String(id));
+            if (item) return { ...item, id: String(item.id || item.exam_id), htmlPayload: item.htmlPayload || item.html_content || '' };
+        }
+    } catch (_) {}
+    return null;
+}
+
+async function renameExamInArchive(id) {
+    const target = await getUnifiedArchiveRecord(id);
+    if (!target) { alert('لم يتم العثور على الاختبار في الأرشيف.'); return; }
+    const newName = prompt('اكتب الاسم الجديد للاختبار:', target.title);
+    if (!newName || !newName.trim() || newName.trim() === target.title) return;
+    target.title = newName.trim();
+    await persistArchiveRecord(target);
+    await renderArchiveData(document.getElementById("archiveSearch")?.value || "");
+}
+
+async function persistArchiveRecord(record) {
+    const normalize = item => ({ ...item, id: String(item.id || item.exam_id || ''), htmlPayload: item.htmlPayload || item.html_content || '' });
+    const merged = new Map();
+    ['examy_archive','examy_archive_db'].forEach(key => {
+        try { const list=JSON.parse(localStorage.getItem(key)||'[]'); if(Array.isArray(list))list.map(normalize).forEach(x=>{if(x.id)merged.set(x.id,x)}); } catch (_) {}
+    });
+    merged.set(String(record.id), normalize(record));
+    const list = Array.from(merged.values());
+    localStorage.setItem('examy_archive', JSON.stringify(list));
+    localStorage.setItem('examy_archive_db', JSON.stringify(list));
+    try {
+        const result = await AppAPI.saveExamArchive(record.lang || currentLang || 'ar', {
+            id: record.id, title: record.title, date: record.date || record.created_at || '',
+            htmlPayload: record.htmlPayload, lang: record.lang || currentLang || 'ar'
+        });
+        if (!result?.success) throw new Error(result?.message || 'فشل تحديث الأرشيف على الخادم');
+    } catch (error) { console.warn('[Examy Archive] تعذر مزامنة التعديل:', error); }
+}
+
+async function loadExamFromArchive(id) {
+    const target = await getUnifiedArchiveRecord(id);
+    if (!target || !target.htmlPayload) { alert('تعذر العثور على محتوى الاختبار المحفوظ.'); return; }
+    if (typeof SoundFX !== 'undefined') SoundFX.success();
+    if (typeof recordUndoState === 'function') recordUndoState();
+    document.getElementById("sheetsWrapper").innerHTML = sanitizeExamHtml(target.htmlPayload);
+    if (typeof examUid !== 'undefined') examUid = target.id;
+    const idSpan = document.getElementById("examIdSpan"); if (idSpan) idSpan.textContent = target.id;
+    if (typeof restoreUIStateAfterDomUpdate === 'function') restoreUIStateAfterDomUpdate();
+    if (typeof reindexAllQuestions === 'function') reindexAllQuestions();
+    if (typeof updateUIIndicators === 'function') updateUIIndicators();
+    if (typeof window.triggerAutoSave === 'function') window.triggerAutoSave();
+    closeArchiveDialog();
+}
+
+async function deleteExamFromArchive(id) {
+    if (!confirm("هل أنت متأكد من حذف هذا النموذج نهائياً؟")) return;
+    const target = await getUnifiedArchiveRecord(id);
+    for (const key of ['examy_archive','examy_archive_db']) {
+        try {
+            const list = JSON.parse(localStorage.getItem(key) || '[]');
+            if (Array.isArray(list)) localStorage.setItem(key, JSON.stringify(list.filter(x => String(x.id || x.exam_id || '') !== String(id))));
+        } catch (_) {}
+    }
+    try {
+        const server = await AppAPI.fetchArchive(currentLang);
+        if (Array.isArray(server)) await AppAPI.replaceArchive(currentLang, server.filter(x => String(x.id || x.exam_id || '') !== String(id)));
+    } catch (error) { console.warn('[Examy Archive] تعذر حذف النسخة من الخادم:', error); }
+    if (typeof SoundFX !== 'undefined') SoundFX.trash();
+    await renderArchiveData(document.getElementById("archiveSearch")?.value || "");
+}
 
 async function renderArchiveData(filter = "") {
     const host = document.getElementById("archiveCardsHost");
