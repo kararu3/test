@@ -2966,3 +2966,25 @@ body.light-mode .btn:hover,
 body.light-mode button:hover {
   background-color: #dde2e6 !important;
 }
+
+/* Visible page ruler for the editor workspace. */
+.a4-sheet .examy-ruler {
+  position:absolute; inset-inline:18px; top:5px; height:18px; z-index:8;
+  display:none; pointer-events:none; border-bottom:1px solid rgba(100,116,139,.45);
+  background:linear-gradient(to bottom,rgba(148,163,184,.08),rgba(148,163,184,.02));
+}
+body.examy-rulers-on .a4-sheet .examy-ruler { display:block !important; }
+.a4-sheet .examy-ruler i { position:absolute; bottom:0; width:1px; height:5px; background:#64748b; }
+.a4-sheet .examy-ruler i.major { height:11px; background:#334155; }
+.a4-sheet .examy-ruler i b { position:absolute; bottom:11px; inset-inline-start:2px; font:700 9px/1 Arial,sans-serif; color:#64748b; }
+@media print { .a4-sheet .examy-ruler { display:none !important; } }
+
+/* Keep native form controls selectable and editable in all ribbon and settings panels. */
+#mainToolbar input, #mainToolbar select, #mainToolbar textarea,
+.settings-modal input, .settings-modal select, .settings-modal textarea {
+  pointer-events:auto !important; user-select:text !important; -webkit-user-select:text !important;
+  cursor:auto;
+}
+#mainToolbar input[type=number], .settings-modal input[type=number] {
+  caret-color:currentColor !important; appearance:auto !important; -webkit-appearance:auto !important;
+}
