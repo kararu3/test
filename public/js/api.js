@@ -93,6 +93,17 @@ const AppAPI = {
         return await res.json();
     },
 
+    async replaceBank(lang, items) {
+        const res = await fetch(`${this.LOCAL_URL}/api/bank/${lang}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) throw new Error(data.message || 'تعذر استعادة بنك الأسئلة.');
+        return data;
+    },
+
     async fetchArchive(lang) {
         const res = await fetch(`${this.LOCAL_URL}/api/archive/${lang}`);
         return await res.json();
@@ -105,6 +116,17 @@ const AppAPI = {
             body: JSON.stringify(payload)
         });
         return await res.json();
+    },
+
+    async replaceArchive(lang, items) {
+        const res = await fetch(`${this.LOCAL_URL}/api/archive/${lang}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items })
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok || !data.success) throw new Error(data.message || 'تعذر استعادة الأرشيف.');
+        return data;
     }
 };
 // حفظ الاختبار في الأرشيف وقاعدة البيانات المزدوجة
