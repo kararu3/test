@@ -1206,10 +1206,8 @@ function handlePaperSizeChange(val) {
         window.ExamyUltimate.setPageSize(val, orientation);
     }
     
-    const prevSelect = document.getElementById("previewPaperSizeSelect");
-    if (prevSelect && prevSelect.value !== val) prevSelect.value = val;
-    const settSelect = document.getElementById("settingsPaperSizeSelect");
-    if (settSelect && settSelect.value !== val) settSelect.value = val;
+    ["ribbonPaperSizeSelect", "previewPaperSizeSelect", "settingsPaperSizeSelect", "examyPaperSize", "examyPreviewPaper"]
+        .forEach(id => { const select = document.getElementById(id); if (select && select.value !== val) select.value = val; });
 
     if (typeof SoundFX !== 'undefined') SoundFX.pop();
     updatePaperSizeDisplay();
