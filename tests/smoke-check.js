@@ -101,7 +101,7 @@ if (!shapeStudio.includes('shape-resize-handle') || !shapeStudio.includes('shape
 if (!uiBehavior.includes('tabBtnTableDesign') || !uiBehavior.includes('showTableTab(null)')) fail('Table design tab must be contextual');
 if (!uiBehavior.includes('dataset.examyRole') || !behaviorCss.includes('data-examy-role="save"')) fail('Semantic toolbar button color system missing');
 if (!uiBehavior.includes('ResizeObserver') || !behaviorCss.includes('--examy-ribbon-height')) fail('Ribbon height must be measured to keep workspace aligned');
-if (!behaviorCss.includes('#appStage{margin-top:8px!important')) fail('Workspace must not retain a second ribbon-height offset that creates a large blank gap');
+if (!behaviorCss.includes('#appStage{margin-top:16px!important')) fail('Workspace must not retain a second ribbon-height offset that creates a large blank gap');
 if (!behaviorCss.includes('#mainToolbar button[data-examy-role="primary"]') || !uiBehavior.includes("button.dataset.examyRole=match?match[0]:groupRole(button)")) fail('Every ribbon action button must receive a visible semantic color role');
 
 if (!app.includes('async function exportFullBackupZip') || !app.includes('async function handleFullBackupImport') || !app.includes('activeExam:') || !app.includes('new Blob([backupJson]).size')) fail('Full backup export/restore workflow missing');
