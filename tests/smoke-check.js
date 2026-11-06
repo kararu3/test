@@ -99,7 +99,7 @@ if ((app.match(/async function renderArchiveData\(/g) || []).length !== 1 || (ap
 if (!shapeStudio.includes('أشكال هندسية') || !shapeStudio.includes('أشكال ورموز رياضية') || !shapeStudio.includes('أشكال عربية وزخرفية') || !shapeStudio.includes('examy-shape-object')) fail('Editable shape gallery categories or page objects missing');
 if (!shapeStudio.includes('shape-resize-handle') || !shapeStudio.includes('shape-rotate-handle')) fail('Shape resize/rotation controls missing');
 if (!uiBehavior.includes('tabBtnTableDesign') || !uiBehavior.includes('showTableTab(null)')) fail('Table design tab must be contextual');
-if (!uiBehavior.includes('data-examy-role') || !behaviorCss.includes('data-examy-role="save"')) fail('Semantic toolbar button color system missing');
+if (!uiBehavior.includes('dataset.examyRole') || !behaviorCss.includes('data-examy-role="save"')) fail('Semantic toolbar button color system missing');
 if (!uiBehavior.includes('ResizeObserver') || !behaviorCss.includes('--examy-ribbon-height')) fail('Ribbon height must be measured to keep workspace aligned');
 
 if (!app.includes('async function exportFullBackupZip') || !app.includes('async function handleFullBackupImport') || !app.includes('activeExam:') || !app.includes('new Blob([backupJson]).size')) fail('Full backup export/restore workflow missing');
