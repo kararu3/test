@@ -6,6 +6,15 @@ const root=()=>$('#sheetsWrapper'), sheets=()=>$$('.a4-sheet',root()||document);
 const toast=(m,t='info')=>window.UIEffects?.showToast?.(m,t,2600)||console.info(m);
 const undo=()=>window.recordUndoState?.();
 const safe=(s)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sanitizeHTML=(html)=>{
+ const template=document.createElement('template');template.innerHTML=String(html||'');
+ template.content.querySelectorAll('script,iframe,object,embed,form').forEach(el=>el.remove());
+ template.content.querySelectorAll('*').forEach(el=>Array.from(el.attributes).forEach(attr=>{
+  const name=attr.name.toLowerCase(),value=String(attr.value||'').trim();
+  if(name.startsWith('on')||(['href','src','xlink:href','action'].includes(name)&&/^javascript:/i.test(value)))el.removeAttribute(attr.name);
+ }));
+ return template.innerHTML;
+};
 const api=window.ExamyUltimate=window.ExamyUltimate||{};
 
 // --- Page layout / numbering / section headers and footers ---
@@ -134,10 +143,44 @@ api.generateVariants=async({count=2,subject='',topic='',perVariant=0,gradeMode='
 
 // --- Export, autosave and revision snapshots ---
 api.backup=()=>{
- const payload={version:1,createdAt:new Date().toISOString(),html:root()?.innerHTML||'',localStorage:Object.fromEntries(Object.keys(localStorage).filter(k=>k.startsWith('exambuilder_')).map(k=>[k,localStorage.getItem(k)])),settings:api.pageSettings};
- const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`Examy-backup-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;a.click();URL.revokeObjectURL(a.href);toast('تم إنشاء النسخة الاحتياطية.','success');
+ const container=root();if(!container)throw new Error('مساحة تحرير الاختبار غير متاحة.');
+ const saved={};
+ for(let i=0;i<localStorage.length;i++){
+  const key=localStorage.key(i)||'';
+  if(/^(exambuilder_|examy[._])/.test(key)&&!/(license|token|api.?key)/i.test(key))saved[key]=localStorage.getItem(key);
+ }
+ const payload={version:1,createdAt:new Date().toISOString(),html:container.innerHTML,localStorage:saved,settings:api.pageSettings};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download=`Examy-backup-${new Date().toISOString().replace(/[:.]/g,'-')}.json`;
+ a.style.display='none';document.body.append(a);a.click();a.remove();
+ // Do not revoke the object URL synchronously: Chromium may not have started the download yet.
+ setTimeout(()=>URL.revokeObjectURL(url),30000);
+ toast('تم إنشاء النسخة الاحتياطية.','success');
 };
-api.restore=async(file)=>{const data=JSON.parse(await file.text());if(!data||!data.html)throw new Error('ملف النسخة الاحتياطية غير صالح');undo();root().innerHTML=data.html;Object.entries(data.localStorage||{}).forEach(([k,v])=>localStorage.setItem(k,v));Object.assign(api.pageSettings,data.settings||{});api.refreshPageNumbers();window.restoreUIStateAfterDomUpdate?.();toast('تمت استعادة النسخة الاحتياطية.','success');};
+api.restore=async(file)=>{
+ if(!file)throw new Error('اختر ملف النسخة الاحتياطية أولاً.');
+ if(file.size>25*1024*1024)throw new Error('حجم النسخة الاحتياطية يتجاوز 25MB.');
+ const data=JSON.parse(await file.text());
+ const container=root();
+ if(!data||typeof data.html!=='string'||!data.html.trim()||!container)throw new Error('ملف النسخة الاحتياطية غير صالح.');
+ undo();container.innerHTML=sanitizeHTML(data.html);
+ if(data.localStorage&&typeof data.localStorage==='object'&&!Array.isArray(data.localStorage)){
+  Object.entries(data.localStorage).forEach(([key,value])=>{
+   if(/^(exambuilder_|examy[._])/.test(key)&&!/(license|token|api.?key)/i.test(key)&&typeof value==='string'){
+    try{localStorage.setItem(key,value)}catch(error){console.warn('تعذر استعادة إعداد محلي:',key,error.message)}
+   }
+  });
+ }
+ const settings=data.settings&&typeof data.settings==='object'?data.settings:{};
+ const allowedSizes=['A4','A3','A5','Letter','Legal','Tabloid','Executive','B5'];
+ const size=allowedSizes.includes(settings.size)?settings.size:'A4';
+ const orientation=['portrait','landscape'].includes(settings.orientation)?settings.orientation:'portrait';
+ api.pageSettings={...api.pageSettings,...settings,size,orientation};
+ api.setPageSize(size,orientation);
+ api.setMargins(api.pageSettings.marginTop,api.pageSettings.marginRight,api.pageSettings.marginBottom,api.pageSettings.marginLeft);
+ api.refreshPageNumbers();window.restoreUIStateAfterDomUpdate?.();toast('تمت استعادة النسخة الاحتياطية.','success');
+};
 api.snapshot=()=>{const history=JSON.parse(localStorage.getItem('examy_revision_history')||'[]');history.push({at:new Date().toISOString(),html:root()?.innerHTML||''});while(history.length>20)history.shift();localStorage.setItem('examy_revision_history',JSON.stringify(history));};
 let saveTimer,revisionTimer;const autosave=()=>{clearTimeout(saveTimer);saveTimer=setTimeout(()=>{try{localStorage.setItem('examy_ultimate_autosave',JSON.stringify({at:Date.now(),html:root()?.innerHTML||''}));clearTimeout(revisionTimer);revisionTimer=setTimeout(()=>api.snapshot(),30000);}catch(e){console.warn('autosave quota',e)}},800);};
 document.addEventListener('input',e=>{if(e.target.closest('#sheetsWrapper'))autosave();});
@@ -145,21 +188,21 @@ document.addEventListener('focusin',e=>{const el=e.target.closest?.('[contentedi
 document.addEventListener('click',e=>{const img=e.target.closest?.('#sheetsWrapper img');if(img){window._examySelectedImage=img;img.classList.add('examy-image-selected')}else{$$('.examy-image-selected').forEach(x=>x.classList.remove('examy-image-selected'));window._examySelectedImage=null;}});document.addEventListener('examy:contentchange',autosave);
 
 // Import .docx and PDF text into editable question blocks.
-api.importDocument=()=>{let input=$('#examyDocumentImport');if(!input){input=document.createElement('input');input.type='file';input.id='examyDocumentImport';input.accept='.docx,.pdf,.txt';input.hidden=true;document.body.append(input);input.addEventListener('change',async()=>{const file=input.files?.[0];if(!file)return;try{let html='';if(file.name.toLowerCase().endsWith('.txt')){html=safe(await file.text()).replace(/\r?\n/g,'<br>')}else if(file.name.toLowerCase().endsWith('.docx')){if(!window.mammoth)throw new Error('مكتبة قراءة Word غير متاحة؛ اتصل بالإنترنت ثم أعد المحاولة');const result=await window.mammoth.convertToHtml({arrayBuffer:await file.arrayBuffer()});html=result.value;}else if(file.name.toLowerCase().endsWith('.pdf')){if(!window.pdfjsLib)throw new Error('مكتبة قراءة PDF غير متاحة؛ اتصل بالإنترنت ثم أعد المحاولة');const pdf=await window.pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;for(let n=1;n<=pdf.numPages;n++){const page=await pdf.getPage(n),content=await page.getTextContent();html+=`<h3>صفحة ${n}</h3><p>${safe(content.items.map(x=>x.str).join(' '))}</p>`;}}if(!html.trim())throw new Error('لم يتم العثور على نص قابل للاستيراد');undo();const card=document.createElement('article');card.className='question-container';card.innerHTML=`<div class="q-title-badge"><span class="q-title-text">${safe(file.name)}</span></div><div class="text-area q-content-box" contenteditable="true" spellcheck="true">${html}</div>`;const stream=$('.questions-stream',sheets().at(-1)||root());stream?.append(card);window.makeQuestionDraggable?.(card);api.scheduleFlow();toast('تم استيراد محتوى الملف إلى الاختبار.','success');}catch(err){toast(err.message||'تعذر استيراد الملف','error')}finally{input.value=''}});}input.click();};
+api.importDocument=()=>{let input=$('#examyDocumentImport');if(!input){input=document.createElement('input');input.type='file';input.id='examyDocumentImport';input.accept='.docx,.pdf,.txt';input.hidden=true;document.body.append(input);input.addEventListener('change',async()=>{const file=input.files?.[0];if(!file)return;try{let html='';if(file.name.toLowerCase().endsWith('.txt')){html=safe(await file.text()).replace(/\r?\n/g,'<br>')}else if(file.name.toLowerCase().endsWith('.docx')){if(!window.mammoth)throw new Error('مكتبة قراءة Word غير متاحة؛ اتصل بالإنترنت ثم أعد المحاولة');const result=await window.mammoth.convertToHtml({arrayBuffer:await file.arrayBuffer()});html=result.value;}else if(file.name.toLowerCase().endsWith('.pdf')){if(!window.pdfjsLib)throw new Error('مكتبة قراءة PDF غير متاحة؛ اتصل بالإنترنت ثم أعد المحاولة');const pdf=await window.pdfjsLib.getDocument({data:await file.arrayBuffer()}).promise;for(let n=1;n<=pdf.numPages;n++){const page=await pdf.getPage(n),content=await page.getTextContent();html+=`<h3>صفحة ${n}</h3><p>${safe(content.items.map(x=>x.str).join(' '))}</p>`;}}if(!html.trim())throw new Error('لم يتم العثور على نص قابل للاستيراد');html=sanitizeHTML(html);undo();const card=document.createElement('article');card.className='question-container';card.innerHTML=`<div class="q-title-badge"><span class="q-title-text">${safe(file.name)}</span></div><div class="text-area q-content-box" contenteditable="true" spellcheck="true">${html}</div>`;const stream=$('.questions-stream',sheets().at(-1)||root());stream?.append(card);window.makeQuestionDraggable?.(card);api.scheduleFlow();toast('تم استيراد محتوى الملف إلى الاختبار.','success');}catch(err){toast(err.message||'تعذر استيراد الملف','error')}finally{input.value=''}});}input.click();};
 
 // --- Built-in controls panel ---
 function installPanel(){
  const nav=$('.ribbon-tabs-nav'),panels=$('.ribbon-panels-host');if(!nav||!panels||$('#examyUltimateTab'))return;
  const tab=document.createElement('button');tab.type='button';tab.id='examyUltimateTab';tab.className='r-tab-btn';tab.dataset.tab='ultimate';tab.textContent='✨ أدوات متقدمة';nav.append(tab);
  const panel=document.createElement('div');panel.id='rtab-ultimate';panel.className='ribbon-tab-panel';panel.innerHTML=`
- <section class="r-group"><b class="r-group-title">الصفحات والطباعة</b><div class="r-group-row"><label>الورق <select id="euPaper"><option>A4</option><option>A3</option><option>Letter</option></select></label><label>الاتجاه <select id="euOrientation"><option value="portrait">عمودي</option><option value="landscape">أفقي</option></select></label><button class="tool-btn" data-eu="flow">توزيع الصفحات</button><button class="tool-btn" data-eu="numbers">ترقيم الصفحات</button></div></section>
+ <section class="r-group"><b class="r-group-title">الصفحات والطباعة</b><div class="r-group-row"><label>الورق <select id="euPaper"><option>A4</option><option>A3</option><option>A5</option><option>Letter</option><option>Legal</option><option>Tabloid</option><option>Executive</option><option>B5</option></select></label><label>الاتجاه <select id="euOrientation"><option value="portrait">عمودي</option><option value="landscape">أفقي</option></select></label><button class="tool-btn" data-eu="flow">توزيع الصفحات</button><button class="tool-btn" data-eu="numbers">ترقيم الصفحات</button></div></section>
  <section class="r-group"><b class="r-group-title">الهوامش (ملم)</b><div class="r-group-row"><input id="euMargins" value="15,15,15,15" aria-label="أعلى، يمين، أسفل، يسار"><button class="tool-btn" data-eu="margins">تطبيق الهوامش</button></div></section>
  <section class="r-group"><b class="r-group-title">الرأس والتذييل</b><div class="r-group-row"><input id="euHeader" placeholder="نص الرأس"><button class="tool-btn" data-eu="header">تطبيق الرأس لكل الصفحات</button><input id="euFooter" placeholder="نص التذييل"><button class="tool-btn" data-eu="footer">تطبيق التذييل</button><label>رقم الصفحة <input id="euPageTarget" type="number" min="1" value="1"></label><button class="tool-btn" data-eu="headerOne">رأس لهذه الصفحة</button><button class="tool-btn" data-eu="footerOne">تذييل لهذه الصفحة</button></div></section>
  <section class="r-group"><b class="r-group-title">التحرير المتقدم</b><div class="r-group-row"><button class="tool-btn" data-eu="paint">نسخ التنسيق</button><button class="tool-btn" data-eu="pastepaint">لصق التنسيق</button><button class="tool-btn" data-eu="table">إدراج جدول</button><button class="tool-btn" data-eu="equation">معادلة</button><button class="tool-btn" data-eu="image">إدراج صورة</button><label>عرض الصورة % <input id="euImageWidth" type="number" min="5" max="100" value="60"></label><button class="tool-btn" data-eu="imageSize">تطبيق الحجم</button><button class="tool-btn" data-eu="symbols">رموز علمية</button><button class="tool-btn" data-eu="import">استيراد Word / PDF</button></div></section>
  <section class="r-group"><b class="r-group-title">بناء النماذج والحماية</b><div class="r-group-row"><label>عدد النماذج <input id="euVariantCount" type="number" min="1" max="10" value="2"></label><label>عدد الأسئلة <input id="euQuestionCount" type="number" min="0" value="0"></label><button class="tool-btn" data-eu="variants">إنشاء نماذج عشوائية</button><button class="tool-btn" data-eu="backup">نسخة احتياطية</button><label class="tool-btn">استعادة نسخة<input id="euRestore" type="file" accept="application/json" hidden></label></div></section>`;
  panels.append(panel);
  // Tab switching is delegated centrally by app.js; avoid duplicate handlers.
- panel.addEventListener('click',async e=>{const b=e.target.closest('[data-eu]');if(!b)return;const act=b.dataset.eu;try{switch(act){case'flow':api.flow();break;case'numbers':api.refreshPageNumbers();break;case'margins':api.setMargins(...$('#euMargins').value.split(',').map(Number));break;case'header':api.setHeaderFooter('header',$('#euHeader').value,{all:true});break;case'footer':api.setHeaderFooter('footer',$('#euFooter').value,{all:true});break;case'headerOne':api.setHeaderFooter('header',$('#euHeader').value,{page:Number($('#euPageTarget').value)||1});break;case'footerOne':api.setHeaderFooter('footer',$('#euFooter').value,{page:Number($('#euPageTarget').value)||1});break;case'paint':api.copyFormat();break;case'pastepaint':api.pasteFormat();break;case'table':api.insertTable(3,3);break;case'equation':api.insertEquation();break;case'image':api.insertImage();break;case'imageSize':if(!api.setSelectedImageSize($('#euImageWidth').value))toast('حدد صورة داخل الاختبار أولاً','warning');break;case'import':api.importDocument();break;case'symbols':api.command('insertText',' ∑ ∫ √ π ± ≤ ≥ ≠ → α β θ ');break;case'variants':api.generateVariants({count:Number($('#euVariantCount').value)||2,perVariant:Number($('#euQuestionCount').value)||0});break;case'backup':api.backup();break;}}catch(err){console.error(err);toast(err.message||'تعذر تنفيذ العملية','error');}});
+ panel.addEventListener('click',async e=>{const b=e.target.closest('[data-eu]');if(!b)return;const act=b.dataset.eu;try{switch(act){case'flow':api.flow();break;case'numbers':api.refreshPageNumbers();break;case'margins':api.setMargins(...$('#euMargins').value.split(',').map(Number));break;case'header':api.setHeaderFooter('header',$('#euHeader').value,{all:true});break;case'footer':api.setHeaderFooter('footer',$('#euFooter').value,{all:true});break;case'headerOne':api.setHeaderFooter('header',$('#euHeader').value,{page:Number($('#euPageTarget').value)||1});break;case'footerOne':api.setHeaderFooter('footer',$('#euFooter').value,{page:Number($('#euPageTarget').value)||1});break;case'paint':api.copyFormat();break;case'pastepaint':api.pasteFormat();break;case'table':api.insertTable(3,3);break;case'equation':api.openEquationEditor();break;case'image':api.insertImage();break;case'imageSize':if(!api.setSelectedImageSize($('#euImageWidth').value))toast('حدد صورة داخل الاختبار أولاً','warning');break;case'import':api.importDocument();break;case'symbols':api.command('insertText',' ∑ ∫ √ π ± ≤ ≥ ≠ → α β θ ');break;case'variants':api.generateVariants({count:Number($('#euVariantCount').value)||2,perVariant:Number($('#euQuestionCount').value)||0});break;case'backup':api.backup();break;}}catch(err){console.error(err);toast(err.message||'تعذر تنفيذ العملية','error');}});
  $('#euPaper',panel).addEventListener('change',()=>api.setPageSize($('#euPaper').value,$('#euOrientation').value));$('#euOrientation',panel).addEventListener('change',()=>api.setPageSize($('#euPaper').value,$('#euOrientation').value));
  $('#euRestore',panel).addEventListener('change',async e=>{if(e.target.files[0])try{await api.restore(e.target.files[0])}catch(err){toast('تعذر استعادة الملف: '+err.message,'error')}e.target.value='';});
 }
