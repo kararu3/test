@@ -21,12 +21,21 @@ api.refreshPageNumbers=()=>{
  const a=$('#pageTotalCount'),b=$('#footerPageCountBadge'); if(a)a.textContent=total;if(b)b.textContent=total;api.refreshRulers();
 };
 api.setPageSize=(size,orientation='portrait')=>{
- if(!['A4','A3','Letter'].includes(size))return;
+ if(!['A4','A3','A5','Letter'].includes(size))return false;
+ if(!['portrait','landscape'].includes(orientation))orientation='portrait';
  undo(); api.pageSettings.size=size;api.pageSettings.orientation=orientation;
- const dims=size==='A3'?(orientation==='landscape'?[1587,1123]:[1123,1587]):size==='Letter'?(orientation==='landscape'?[1056,816]:[816,1056]):(orientation==='landscape'?[1123,794]:[794,1123]);
+ const dimensions={
+  A3:orientation==='landscape'?[1587,1123]:[1123,1587],
+  A4:orientation==='landscape'?[1123,794]:[794,1123],
+  A5:orientation==='landscape'?[794,559]:[559,794],
+  Letter:orientation==='landscape'?[1056,816]:[816,1056]
+ };
+ const dims=dimensions[size];
  document.documentElement.style.setProperty('--a4-w',`${dims[0]}px`);document.documentElement.style.setProperty('--a4-h',`${dims[1]}px`);
  try{let st=$('#examy-dynamic-page-rule');if(!st){st=document.createElement('style');st.id='examy-dynamic-page-rule';document.head.append(st)}st.textContent=`@page{size:${size} ${orientation};margin:0}`;}catch{}
  sheets().forEach(s=>{s.dataset.paper=size;s.dataset.orientation=orientation;}); api.refreshPageNumbers();
+ try{localStorage.setItem('examy_page_settings',JSON.stringify(api.pageSettings));}catch{}
+ return true;
 };
 api.setMargins=(top,right,bottom,left)=>{
  const vals=[top,right,bottom,left].map(v=>Math.max(0,Math.min(50,Number(v)||0)));
