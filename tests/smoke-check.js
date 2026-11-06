@@ -82,7 +82,7 @@ if (!bridge.includes('setTimeout(()=>URL.revokeObjectURL(url),30000)')) fail('Qu
 
 const apiClient = fs.readFileSync(path.join(root, 'public/js/api.js'), 'utf8');
 if (!apiClient.includes('replaceBank') || !apiClient.includes('replaceArchive')) fail('Bulk restore API methods missing');
-if (!app.includes('async function exportFullBackupZip') || !app.includes('async function handleFullBackupImport')) fail('Full backup export/restore workflow missing');
+if (!app.includes('async function exportFullBackupZip') || !app.includes('async function handleFullBackupImport') || !app.includes('activeExam:') || !app.includes('new Blob([backupJson]).size')) fail('Full backup export/restore workflow missing');
 if (!html.includes('onclick="importFullBackupZip()"')) fail('Backup restore control missing from the UI');
 
 const state = fs.readFileSync(path.join(root, 'public/js/state.js'), 'utf8');
