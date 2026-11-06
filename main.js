@@ -3,7 +3,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
-const { exec, execFile } = require('child_process');
+const { execFile } = require('child_process');
 
 // Only one application instance may own the local HTTP service and its JSON database.
 const hasSingleInstance = app.requestSingleInstanceLock();
@@ -183,7 +183,7 @@ ipcMain.handle('get-system-printers', async (event) => {
     if (!rejectUntrusted(event)) return { success: false, printers: [], error: 'طلب غير موثوق.' };
     return new Promise((resolve) => {
         const psCmd = '[Console]::OutputEncoding = [System.Text.Encoding]::UTF8; Add-Type -AssemblyName System.Drawing; [System.Drawing.Printing.PrinterSettings]::InstalledPrinters | ForEach-Object { $ps = New-Object System.Drawing.Printing.PrinterSettings; $ps.PrinterName = $_; $pList = @($ps.PaperSizes | ForEach-Object { $_.PaperName }); [PSCustomObject]@{ name = $_; isDefault = $ps.IsDefaultPrinter; papers = $pList } } | ConvertTo-Json -Depth 2';
-        exec('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', psCmd], { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024, windowsHide: true }, async (err, stdout) => {
+        execFile('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command', psCmd], { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024, windowsHide: true }, async (err, stdout) => {
             let printersList = [];
             if (!err && stdout?.trim()) {
                 try {
