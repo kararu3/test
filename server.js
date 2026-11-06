@@ -23,7 +23,7 @@ app.use(cors({
     }
 }));
 
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '12mb' }));
 
 function isLoopbackRequest(req) {
     const address = String(req.socket.remoteAddress || '').replace(/^::ffff:/, '');
@@ -154,8 +154,18 @@ app.post('/api/lan/submit', (req, res) => {
         payload: incomingExam
     };
     queue.unshift(queueItem);
-    // Bound the inbox so repeated LAN submissions cannot grow the JSON file forever.
-    queue = queue.slice(0, 500);
+    // Bound both record count and total inbox size; a count-only limit could still
+    // allow hundreds of multi-megabyte HTML payloads to exhaust disk space.
+    const boundedQueue = [];
+    let queueBytes = 0;
+    for (const item of queue) {
+        if (boundedQueue.length >= 500) break;
+        const itemBytes = Buffer.byteLength(JSON.stringify(item), 'utf8');
+        if (queueBytes + itemBytes > 50 * 1024 * 1024) continue;
+        boundedQueue.push(item);
+        queueBytes += itemBytes;
+    }
+    queue = boundedQueue;
     try {
         StorageEngine.write('lan_queue.json', queue);
         res.json({ success: true, message: 'تم إرسال الاختبار بنجاح', queueId: queueItem.id });
