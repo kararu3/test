@@ -15,7 +15,7 @@ This branch contains targeted fixes based on the current repository. It is not r
 - Restricted non-LAN API routes to loopback clients. Kept only LAN discovery and submission reachable to other local-network devices.
 - Reduced JSON request body size, limited individual LAN submissions, and bounded the LAN inbox by both record count and total stored bytes.
 - Made local autosave storage failures non-fatal and connected the page-flow bridge to the active pagination engine.
-- Hardened backup/restore handling, sanitized imported HTML from Word/PDF and backup files, delayed object-URL revocation so downloads can start, connected the equation button to the visual MathLive editor, and capped revision-history storage to avoid quota crashes.
+- Hardened backup/restore handling, sanitized HTML restored from archives, templates, autosave, .exam imports, Word/PDF and backup files, delayed object-URL revocation for exports so downloads can start, connected the equation button to the visual MathLive editor, and capped revision-history storage to avoid quota crashes.
 - Added an npm test smoke-check command and a Windows GitHub Actions workflow to run syntax/smoke checks, build the installer, and package the source ZIP.
 
 ## Verification status
