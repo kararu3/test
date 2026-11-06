@@ -261,6 +261,27 @@ app.post('/api/bank/:lang', (req, res) => {
     res.json({ success: true, question: newQuestion });
 });
 
+// Replace a complete question bank during an explicit local backup restore.
+app.put('/api/bank/:lang', (req, res) => {
+    const lang = req.params.lang === 'en' ? 'en' : 'ar';
+    const bank = req.body?.items;
+    if (!Array.isArray(bank) || bank.length > 50000) {
+        return res.status(400).json({ success: false, message: 'صيغة بنك الأسئلة غير صالحة أو تجاوزت الحد.' });
+    }
+    if (Buffer.byteLength(JSON.stringify(bank), 'utf8') > 10 * 1024 * 1024) {
+        return res.status(413).json({ success: false, message: 'حجم بنك الأسئلة يتجاوز 10MB.' });
+    }
+    if (bank.some(item => !item || typeof item !== 'object' || Array.isArray(item))) {
+        return res.status(400).json({ success: false, message: 'يحتوي بنك الأسئلة على سجل غير صالح.' });
+    }
+    try {
+        StorageEngine.write(`bank_${lang}.json`, bank);
+        res.json({ success: true, count: bank.length });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'تعذر استبدال بنك الأسئلة.', error: error.message });
+    }
+});
+
 // مسارات الأرشيف الأساسية والبديلة لمنع أي خطأ 404
 app.get('/api/archive/:lang', (req, res) => {
     const lang = req.params.lang === 'en' ? 'en' : 'ar';
@@ -289,6 +310,27 @@ app.post('/api/archive/:lang', (req, res) => {
     
     StorageEngine.write(`archive_${lang}.json`, archive);
     res.json({ success: true, exam: record });
+});
+
+// Replace a complete archive during an explicit local backup restore.
+app.put('/api/archive/:lang', (req, res) => {
+    const lang = req.params.lang === 'en' ? 'en' : 'ar';
+    const archive = req.body?.items;
+    if (!Array.isArray(archive) || archive.length > 5000) {
+        return res.status(400).json({ success: false, message: 'صيغة الأرشيف غير صالحة أو تجاوزت الحد.' });
+    }
+    if (Buffer.byteLength(JSON.stringify(archive), 'utf8') > 10 * 1024 * 1024) {
+        return res.status(413).json({ success: false, message: 'حجم الأرشيف يتجاوز 10MB.' });
+    }
+    if (archive.some(item => !item || typeof item !== 'object' || Array.isArray(item))) {
+        return res.status(400).json({ success: false, message: 'يحتوي الأرشيف على سجل غير صالح.' });
+    }
+    try {
+        StorageEngine.write(`archive_${lang}.json`, archive);
+        res.json({ success: true, count: archive.length });
+    } catch (error) {
+        res.status(500).json({ success: false, message: 'تعذر استبدال الأرشيف.', error: error.message });
+    }
 });
 
 // توافق إضافي مع مسارات /api/exams
