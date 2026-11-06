@@ -43,3 +43,17 @@ The test suite now checks required files, JSON database validity, JavaScript syn
 11. Change the printer in Settings and confirm the ribbon, Settings, and preview paper-size lists all match that printer's supported paper options; test editing all numeric fields while the ribbon is open.
 12. Toggle rulers on and off, then add/reorder pages and confirm the chosen ruler state remains consistent.
 13. Export both PDF commands and confirm the PDF contains only the test paper(s), without any Examy application buttons, settings, ribbon, preview dock, or status bars.
+
+
+## Additional UI, archive and shape-studio fixes (2026-11-06)
+
+- Reworked archive save/list/rename/delete/restore so local records and server records are normalized and merged by ID. Saving now writes through the language-specific archive API and also keeps local recovery copies. Archive entries loaded from the server can be restored even if they were not already present in localStorage.
+- Replaced unsafe archive-card HTML interpolation with DOM-created text nodes and event handlers.
+- Added a contextual table-design tab controller: the tab appears while focus/selection is inside a table and hides after leaving the table.
+- Added a semantic toolbar color system that assigns function-based colors to save, insert, print, delete, edit, formatting, AI, layout and table actions in both themes.
+- Made the ribbon height content-aware with ResizeObserver and reserved the measured height above the page workspace to reduce overlap when UI scale or text size changes.
+- Reorganized the Advanced Studio into task-focused groups: smart generation, content/grade organization, review/preflight, and drawing/shapes.
+- Added an editable SVG shape gallery with geometric, mathematical, Arabic/decorative, arrow and flowchart groups. Shapes are embedded as editable vector DOM objects within the sheet, with pointer movement, resizing, free-angle rotation, fill/stroke controls and deletion.
+- Added smoke checks for the archive, shape gallery, contextual table tab, toolbar role colors and dynamic ribbon height.
+
+Validation remains limited to JavaScript syntax checks and GitHub Actions smoke/build workflow. Manual UI interaction, Windows printer, pagination, and PDF visual acceptance still require testing on a Windows machine.
