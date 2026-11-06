@@ -2968,7 +2968,7 @@ async function handleFullBackupImport(event) {
             }
         }
 
-        if (typeof loadArchiveFromDb === 'function') await loadArchiveFromDb();
+        if (typeof renderArchiveData === 'function') await renderArchiveData(document.getElementById('archiveSearch')?.value || '');
         if (typeof loadTemplatesIntoSettingsUI === 'function') loadTemplatesIntoSettingsUI();
         if (typeof refreshSavedTemplatesDropdown === 'function') refreshSavedTemplatesDropdown();
         if (failures.length) {
