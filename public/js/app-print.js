@@ -103,13 +103,10 @@ async function openSelectedPrinterProps() {
 async function promptDirectPrint() {
     if (typeof SoundFX !== 'undefined') SoundFX.pop();
 
-    const printerName = (typeof selectedPrinter !== 'undefined' && selectedPrinter) 
-        ? selectedPrinter 
-        : (document.getElementById('printerSelect')?.value || '');
-
-    const paperSize = (typeof activePaperSize !== 'undefined' && activePaperSize) 
-        ? activePaperSize 
-        : 'A4';
+    const printerName = document.getElementById('printerSelect')?.value ||
+        ((typeof selectedPrinter !== 'undefined' && selectedPrinter) ? selectedPrinter : (localStorage.getItem('exambuilder_default_printer') || ''));
+    const paperSize = currentPaperSize || window.ExamyUltimate?.pageSettings?.size ||
+        ((typeof activePaperSize !== 'undefined' && activePaperSize) ? activePaperSize : 'A4');
 
     // تحديث بيانات بطاقة التأكيد إن كانت معروضة
     const nameEl = document.getElementById('confirmPrinterName');
@@ -133,13 +130,10 @@ async function executeSilentDirectPrint() {
         UIEffects.showToast("جاري إرسال الاختبار إلى الطابعة الآن...", "info", 3000);
     }
 
-    const printerName = (typeof selectedPrinter !== 'undefined' && selectedPrinter) 
-        ? selectedPrinter 
-        : (document.getElementById('printerSelect')?.value || '');
-
-    const paperSize = (typeof activePaperSize !== 'undefined' && activePaperSize) 
-        ? activePaperSize 
-        : 'A4';
+    const printerName = document.getElementById('printerSelect')?.value ||
+        ((typeof selectedPrinter !== 'undefined' && selectedPrinter) ? selectedPrinter : (localStorage.getItem('exambuilder_default_printer') || ''));
+    const paperSize = currentPaperSize || window.ExamyUltimate?.pageSettings?.size ||
+        ((typeof activePaperSize !== 'undefined' && activePaperSize) ? activePaperSize : 'A4');
 
     try {
         // إذا كان التطبيق يعمل داخل Electron
@@ -147,7 +141,7 @@ async function executeSilentDirectPrint() {
             const res = await window.examy.printSheetDirect({
                 printerName: printerName,
                 pageSize: paperSize,
-                landscape: false
+                landscape: (window.ExamyUltimate?.pageSettings?.orientation === 'landscape') || !!isBookletMode
             });
 
             if (res && res.success) {
