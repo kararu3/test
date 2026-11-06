@@ -39,3 +39,7 @@
 .examy-action-edit{background:#b45309!important}.examy-action-open{background:#0369a1!important}.examy-action-delete{background:#b91c1c!important}
 .examy-archive-empty,.examy-archive-loading{padding:34px;text-align:center;color:var(--ex-muted,#64748b)}.examy-archive-empty span{display:block;margin-top:7px;font-size:12px}
 @media(max-width:800px){.examy-archive-card{align-items:flex-start;flex-direction:column}.examy-archive-actions{width:100%}}
+
+/* Reserve the live ribbon's measured height so zoom/font changes never push it over the page. */
+#appStage{margin-top:calc(var(--titlebar-h,34px) + var(--examy-ribbon-height,110px) + 14px)!important}
+body.in-preview .examy-shape-object button{display:none!important}
