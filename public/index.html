@@ -311,6 +311,14 @@
                 <div class="r-group">
                     <span class="r-group-title">الإطار والورقة</span>
                     <div class="r-group-row">
+                        <label class="field" style="display:inline-flex;align-items:center;gap:6px;">
+                            <span>ورقة الاختبار:</span>
+                            <select id="ribbonPaperSizeSelect" onchange="handlePaperSizeChange(this.value)" aria-label="اختيار حجم ورقة الاختبار">
+                                <option value="A4">A4</option><option value="A3">A3</option><option value="A5">A5</option>
+                                <option value="Letter">Letter</option><option value="Legal">Legal</option><option value="Tabloid">Tabloid</option>
+                                <option value="Executive">Executive</option><option value="B5">B5</option>
+                            </select>
+                        </label>
                         <select onchange="syncBorderSettings('shape', this.value)" class="r-select-pro">
                             <option value="gradient">ملون متدرج</option>
                             <option value="solid">خط متصل</option>
