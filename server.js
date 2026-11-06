@@ -3,6 +3,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = 3000;
@@ -21,7 +22,23 @@ app.use(cors({
         } catch { callback(new Error('Origin غير صالح')); }
     }
 }));
+
 app.use(express.json({ limit: '50mb' }));
+
+function isLoopbackRequest(req) {
+    const address = String(req.socket.remoteAddress || '').replace(/^::ffff:/, '');
+    return address === '127.0.0.1' || address === '::1' || address === 'localhost';
+}
+
+// Only the explicitly designed LAN hand-off endpoints are reachable by other
+// devices. The question bank, archive, license and configuration APIs stay local.
+app.use('/api', (req, res, next) => {
+    if (req.path === '/lan/info' || req.path === '/lan/submit') return next();
+    if (!isLoopbackRequest(req)) {
+        return res.status(403).json({ success: false, message: 'هذه الخدمة متاحة من الجهاز الذي يشغّل Examy فقط.' });
+    }
+    next();
+});
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
 app.use(express.static(PUBLIC_DIR));
@@ -121,24 +138,39 @@ app.get('/api/lan/info', (req, res) => {
 
 app.post('/api/lan/submit', (req, res) => {
     const incomingExam = req.body;
-    if (!incomingExam || !incomingExam.htmlPayload) {
+    if (!incomingExam || typeof incomingExam.htmlPayload !== 'string' || !incomingExam.htmlPayload.trim()) {
         return res.status(400).json({ success: false, message: 'بيانات الاختبار غير مكتملة' });
     }
+    if (incomingExam.htmlPayload.length > 10 * 1024 * 1024) {
+        return res.status(413).json({ success: false, message: 'حجم الاختبار أكبر من الحد المسموح (10MB).' });
+    }
     let queue = StorageEngine.read('lan_queue.json', []);
+    if (!Array.isArray(queue)) queue = [];
     const queueItem = {
-        id: "LAN-" + Date.now(),
-        sender: incomingExam.sender || "جهاز عبر الشبكة",
-        title: incomingExam.title || "اختبار مرسل",
+        id: 'LAN-' + Date.now() + '-' + crypto.randomBytes(4).toString('hex'),
+        sender: String(incomingExam.sender || 'جهاز عبر الشبكة').slice(0, 120),
+        title: String(incomingExam.title || 'اختبار مرسل').slice(0, 200),
         date: new Date().toISOString(),
         payload: incomingExam
     };
     queue.unshift(queueItem);
-    StorageEngine.write('lan_queue.json', queue);
-    res.json({ success: true, message: 'تم إرسال الاختبار بنجاح', queueId: queueItem.id });
+    // Bound the inbox so repeated LAN submissions cannot grow the JSON file forever.
+    queue = queue.slice(0, 500);
+    try {
+        StorageEngine.write('lan_queue.json', queue);
+        res.json({ success: true, message: 'تم إرسال الاختبار بنجاح', queueId: queueItem.id });
+    } catch (error) {
+        console.error('تعذر حفظ الاختبار الوارد عبر الشبكة:', error.message);
+        res.status(500).json({ success: false, message: 'تعذر حفظ الاختبار على الجهاز المستقبِل.' });
+    }
 });
 
 app.get('/api/lan/queue', (req, res) => {
-    res.json(StorageEngine.read('lan_queue.json', []));
+    if (!isLoopbackRequest(req)) {
+        return res.status(403).json({ success: false, message: 'عرض صندوق الوارد متاح على الجهاز المستقبِل فقط.' });
+    }
+    const queue = StorageEngine.read('lan_queue.json', []);
+    res.json(Array.isArray(queue) ? queue : []);
 });
 
 // مسارات الترخيص
