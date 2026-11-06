@@ -41,7 +41,7 @@ for (const asset of [
 
 const main = fs.readFileSync(path.join(root, 'main.js'), 'utf8');
 if (main.indexOf('function getExamFilePathFromArgs') > main.indexOf('function createWindow')) fail('Exam file argument helper must be top-level');
-for (const token of ['requestSingleInstanceLock', 'isTrustedSender', 'setPermissionRequestHandler', "execFile('rundll32.exe'", "execFile('powershell.exe'", 'sendPendingExamFile']) {
+for (const token of ['requestSingleInstanceLock', 'isTrustedSender', 'setPermissionRequestHandler', 'audioOnly', 'will-navigate', "execFile('rundll32.exe'", "execFile('powershell.exe'", 'sendPendingExamFile']) {
   if (!main.includes(token)) fail('Missing Electron hardening: ' + token);
 }
 if (main.includes('const cmd = `rundll32')) fail('Printer name must never be interpolated into a shell command');
