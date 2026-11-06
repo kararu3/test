@@ -1,0 +1,51 @@
+name: Examy PRO Windows verification and package
+
+on:
+  push:
+    branches:
+      - main
+      - examy-completion-hardening
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-and-build:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run smoke and JavaScript syntax tests
+        run: npm test
+
+      - name: Build Windows installer
+        run: npm run dist
+
+      - name: Package complete source tree
+        shell: pwsh
+        run: |
+          $excluded = @('node_modules', '.git', 'dist', '.github')
+          $items = Get-ChildItem -Force | Where-Object { $_.Name -notin $excluded }
+          Compress-Archive -Path $items.FullName -DestinationPath "$env:GITHUB_WORKSPACE\Examy-PRO-source.zip" -Force
+
+      - name: Upload installer and full source ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: Examy-PRO-Windows-and-Source
+          path: |
+            Examy-PRO-source.zip
+            dist/*.exe
+          if-no-files-found: error
+          retention-days: 14
