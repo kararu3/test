@@ -2826,8 +2826,14 @@ async function exportFullBackupZip() {
         const localBankAr = readStoredJson('exambuilder_bank_ar', []);
         const localBankEn = readStoredJson('exambuilder_bank_en', []);
         const localArchive = readStoredJson('examy_archive_db', []);
+        const localArchiveDisplay = readStoredJson('examy_archive', []);
+        const normalizeArchive = (items, lang) => (Array.isArray(items) ? items : []).map(item => ({
+            ...item, id: item.id || item.exam_id, date: item.date || item.created_at,
+            htmlPayload: item.htmlPayload || item.html_content, lang: item.lang || lang
+        }));
+        const archiveFallback = normalizeArchive(localArchiveDisplay.length ? localArchiveDisplay : localArchive, 'ar');
         const [archiveAr, archiveEn, bankAr, bankEn] = await Promise.all([
-            fetchList(() => AppAPI.fetchArchive('ar'), localArchive),
+            fetchList(() => AppAPI.fetchArchive('ar'), archiveFallback),
             fetchList(() => AppAPI.fetchArchive('en'), []),
             fetchList(() => AppAPI.fetchBank('ar'), localBankAr),
             fetchList(() => AppAPI.fetchBank('en'), localBankEn)
@@ -2847,6 +2853,7 @@ async function exportFullBackupZip() {
             banks: { ar: bankAr, en: bankEn },
             local: {
                 archiveDb: localArchive,
+                archiveDisplay: localArchiveDisplay,
                 templatesVault: readStoredJson('examy_templates_vault', []),
                 defaultTemplate: readStoredJson('examy_default_user_template', null)
             },
@@ -2911,6 +2918,8 @@ async function handleFullBackupImport(event) {
             localStorage.setItem('exambuilder_bank_ar', JSON.stringify(bankAr));
             localStorage.setItem('exambuilder_bank_en', JSON.stringify(bankEn));
             if (Array.isArray(local.archiveDb)) localStorage.setItem('examy_archive_db', JSON.stringify(local.archiveDb));
+            const displayArchive = Array.isArray(local.archiveDisplay) ? local.archiveDisplay : (currentLang === 'en' ? archiveEn : archiveAr);
+            localStorage.setItem('examy_archive', JSON.stringify(displayArchive));
             if (Array.isArray(local.templatesVault)) localStorage.setItem('examy_templates_vault', JSON.stringify(local.templatesVault));
             if (local.defaultTemplate) localStorage.setItem('examy_default_user_template', JSON.stringify(local.defaultTemplate));
             Object.entries(localValues).forEach(([key, value]) => {
