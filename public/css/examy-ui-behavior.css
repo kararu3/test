@@ -41,5 +41,30 @@
 @media(max-width:800px){.examy-archive-card{align-items:flex-start;flex-direction:column}.examy-archive-actions{width:100%}}
 
 /* Reserve the live ribbon's measured height so zoom/font changes never push it over the page. */
-#appStage{margin-top:calc(var(--titlebar-h,34px) + var(--examy-ribbon-height,110px) + 14px)!important}
+#appStage{margin-top:8px!important;padding-top:0!important;scroll-margin-top:calc(var(--titlebar-h,34px) + var(--examy-ribbon-height,110px) + 8px)!important}
 body.in-preview .examy-shape-object button{display:none!important}
+
+/* Strong, always-visible function colors for every action button in the ribbon. */
+#mainToolbar button[data-examy-role]{
+ color:#fff!important;background:#3159d9!important;border:1px solid #2447b8!important;
+ border-radius:9px!important;font-weight:800!important;text-shadow:0 1px 1px rgba(0,0,0,.15)!important;
+ box-shadow:0 2px 5px rgba(25,42,100,.20)!important;opacity:1!important;
+ filter:none!important;transition:background-color .14s,border-color .14s,box-shadow .14s!important;
+}
+#mainToolbar button[data-examy-role="primary"]{background:#3159d9!important;border-color:#2447b8!important}
+#mainToolbar button[data-examy-role="save"]{background:#16834a!important;border-color:#11683a!important}
+#mainToolbar button[data-examy-role="insert"]{background:#087eae!important;border-color:#06658d!important}
+#mainToolbar button[data-examy-role="print"]{background:#7041c7!important;border-color:#5b31ad!important}
+#mainToolbar button[data-examy-role="delete"]{background:#c33737!important;border-color:#a82727!important}
+#mainToolbar button[data-examy-role="edit"]{background:#53657d!important;border-color:#405168!important}
+#mainToolbar button[data-examy-role="format"]{background:#087f78!important;border-color:#06665f!important}
+#mainToolbar button[data-examy-role="ai"]{background:#7945c7!important;border-color:#6233a8!important}
+#mainToolbar button[data-examy-role="layout"]{background:#b66a12!important;border-color:#96540b!important}
+#mainToolbar button[data-examy-role="table"]{background:#087f98!important;border-color:#06677b!important}
+#mainToolbar button[data-examy-role]:hover,
+#mainToolbar button[data-examy-role]:focus-visible{
+ color:#fff!important;filter:brightness(1.12)!important;box-shadow:0 4px 10px rgba(15,23,42,.25)!important;transform:translateY(-1px)!important
+}
+#mainToolbar button[data-examy-role]:active{transform:translateY(0)!important;filter:brightness(.94)!important}
+html[data-theme="dark"] #mainToolbar button[data-examy-role]{color:#fff!important}
+html[data-theme="light"] #mainToolbar button[data-examy-role]{color:#fff!important}
