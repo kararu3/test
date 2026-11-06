@@ -41,13 +41,13 @@ for (const asset of [
 
 const main = fs.readFileSync(path.join(root, 'main.js'), 'utf8');
 if (main.indexOf('function getExamFilePathFromArgs') > main.indexOf('function createWindow')) fail('Exam file argument helper must be top-level');
-for (const token of ['requestSingleInstanceLock', 'isTrustedSender', 'setPermissionRequestHandler', "execFile('rundll32.exe'", 'sendPendingExamFile']) {
+for (const token of ['requestSingleInstanceLock', 'isTrustedSender', 'setPermissionRequestHandler', "execFile('rundll32.exe'", "execFile('powershell.exe'", 'sendPendingExamFile']) {
   if (!main.includes(token)) fail('Missing Electron hardening: ' + token);
 }
 if (main.includes('const cmd = `rundll32')) fail('Printer name must never be interpolated into a shell command');
 
 const server = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
-for (const token of ['isLoopbackRequest', '10 * 1024 * 1024', '50 * 1024 * 1024', "req.path === '/lan/submit'"]) {
+for (const token of ['isLoopbackRequest', 'requireLoopbackForAI', '10 * 1024 * 1024', '50 * 1024 * 1024', "req.path === '/lan/submit'"]) {
   if (!server.includes(token)) fail('Missing local API / LAN protection: ' + token);
 }
 
