@@ -28,7 +28,11 @@ async function loadSystemPrintersToSettings() {
                     select.appendChild(opt);
                 });
 
-                populatePrinterPaperSizes(savedPrinter || (res.printers.find(x => x.isDefault) || res.printers[0]).name);
+                const activePrinter = res.printers.find(x => x.name === savedPrinter) || res.printers.find(x => x.isDefault) || res.printers[0];
+                if (activePrinter) {
+                    select.value = activePrinter.name;
+                    populatePrinterPaperSizes(activePrinter.name);
+                }
             } else {
                 select.innerHTML = `<option value="">لم يتم العثور على طابعات متصلة</option>`;
             }
@@ -252,7 +256,7 @@ async function exportExamDocumentPdf() {
         if (document.fonts?.ready) await document.fonts.ready;
         if (window.examy && typeof window.examy.printToPdf === 'function') {
             const res = await window.examy.printToPdf({
-                pageSize, landscape: orientation === 'landscape',
+                pageSize, landscape: orientation === 'landscape' || !!isBookletMode || (pageSize === 'A3' && !!isBookletMode),
                 printerName: localStorage.getItem('exambuilder_default_printer') || ''
             });
             if (res?.success) {
