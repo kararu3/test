@@ -20,8 +20,8 @@ const required = [
   'public/index.html', 'public/js/editor-engine.js',
   'public/js/ultimate-engine.js', 'public/js/completion-suite.js',
   'public/js/examy-controls-repair.js', 'public/js/examy-feature-bridge.js',
-  'public/js/examy-ribbon-interaction.js',
-  'public/css/examy-ultimate.css', 'public/css/examy-controls-repair.css'
+  'public/js/examy-ribbon-interaction.js', 'public/js/examy-shape-studio.js', 'public/js/examy-ui-behavior.js',
+  'public/css/examy-ultimate.css', 'public/css/examy-controls-repair.css', 'public/css/examy-shape-studio.css', 'public/css/examy-ui-behavior.css'
 ];
 for (const file of required) if (!fs.existsSync(path.join(root, file))) fail('Missing ' + file);
 
@@ -36,7 +36,7 @@ const html = fs.readFileSync(path.join(root, 'public/index.html'), 'utf8');
 for (const asset of [
   'js/editor-engine.js', 'js/ultimate-engine.js', 'js/completion-suite.js',
   'js/examy-controls-repair.js', 'js/examy-feature-bridge.js',
-  'js/examy-ribbon-interaction.js'
+  'js/examy-ribbon-interaction.js', 'js/examy-shape-studio.js', 'js/examy-ui-behavior.js'
 ]) if (!html.includes(asset)) fail('Required script not loaded: ' + asset);
 
 const main = fs.readFileSync(path.join(root, 'main.js'), 'utf8');
@@ -91,6 +91,16 @@ if (!bridge.includes('setTimeout(()=>URL.revokeObjectURL(url),30000)')) fail('Qu
 
 const apiClient = fs.readFileSync(path.join(root, 'public/js/api.js'), 'utf8');
 if (!apiClient.includes('replaceBank') || !apiClient.includes('replaceArchive')) fail('Bulk restore API methods missing');
+const shapeStudio = fs.readFileSync(path.join(root, 'public/js/examy-shape-studio.js'), 'utf8');
+const uiBehavior = fs.readFileSync(path.join(root, 'public/js/examy-ui-behavior.js'), 'utf8');
+const behaviorCss = fs.readFileSync(path.join(root, 'public/css/examy-ui-behavior.css'), 'utf8');
+if (!app.includes('AppAPI.saveExamArchive') || !app.includes('getUnifiedArchiveRecord') || !app.includes('AppAPI.replaceArchive')) fail('Archive must save, merge, rename/delete and restore from unified local/server records');
+if (!shapeStudio.includes('أشكال هندسية') || !shapeStudio.includes('أشكال ورموز رياضية') || !shapeStudio.includes('أشكال عربية وزخرفية') || !shapeStudio.includes('examy-shape-object')) fail('Editable shape gallery categories or page objects missing');
+if (!shapeStudio.includes('shape-resize-handle') || !shapeStudio.includes('shape-rotate-handle')) fail('Shape resize/rotation controls missing');
+if (!uiBehavior.includes('tabBtnTableDesign') || !uiBehavior.includes('showTableTab(null)')) fail('Table design tab must be contextual');
+if (!uiBehavior.includes('data-examy-role') || !behaviorCss.includes('data-examy-role="save"')) fail('Semantic toolbar button color system missing');
+if (!uiBehavior.includes('ResizeObserver') || !behaviorCss.includes('--examy-ribbon-height')) fail('Ribbon height must be measured to keep workspace aligned');
+
 if (!app.includes('async function exportFullBackupZip') || !app.includes('async function handleFullBackupImport') || !app.includes('activeExam:') || !app.includes('new Blob([backupJson]).size')) fail('Full backup export/restore workflow missing');
 if (!html.includes('onclick="importFullBackupZip()"')) fail('Backup restore control missing from the UI');
 
