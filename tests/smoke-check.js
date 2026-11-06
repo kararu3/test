@@ -63,6 +63,15 @@ if (app.includes('URL.revokeObjectURL(a.href)')) fail('Export URLs must not be r
 if (!app.includes("!e.target.closest('.ribbon-tabs-nav')")) fail('Ribbon clicks must not trigger table deselection');
 if (!app.includes('Let the ribbon interaction module receive the bubbling event')) fail('Ribbon click must bubble to its interaction controller');
 
+const printerUi = fs.readFileSync(path.join(root, 'public/js/app-print.js'), 'utf8');
+const printCss = fs.readFileSync(path.join(root, 'public/css/print.css'), 'utf8');
+const studioControls = fs.readFileSync(path.join(root, 'public/js/examy-studio-controls.js'), 'utf8');
+if (!html.includes('id="ribbonPaperSizeSelect"')) fail('Top ribbon paper-size selector missing');
+if (!printerUi.includes('normalizePrinterPaperSize') || !printerUi.includes('"ribbonPaperSizeSelect"')) fail('Printer paper options must populate the ribbon selector');
+if (!printerUi.includes('body.classList.add(\'examy-document-export\')') || !printCss.includes('body.examy-document-export > *:not(#appStage)')) fail('PDF export must isolate the examination sheets from the app UI');
+if (!studioControls.includes('.examy-ruler')) fail('Ruler toggle must target the actual page ruler');
+if (!ribbon.includes('hasFocusedFormControl')) fail('Ribbon must remain open while editing numeric and select controls');
+
 const controlCss = fs.readFileSync(path.join(root, 'public/css/examy-controls-repair.css'), 'utf8');
 const controlJs = fs.readFileSync(path.join(root, 'public/js/examy-controls-repair.js'), 'utf8');
 if (!controlCss.includes('user-select:text!important')) fail('Numeric/form controls must be text-selectable');
