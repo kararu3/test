@@ -790,7 +790,13 @@ document.addEventListener('click', (e) => {
     const table = e.target.closest('table');
     if (table) {
         ActiveTableEngine.select(table);
-    } else if (!e.target.closest('#rtab-tableDesign') && !e.target.closest('.table-resizable-wrapper')) {
+    } else if (
+        !e.target.closest('#rtab-tableDesign') &&
+        !e.target.closest('.table-resizable-wrapper') &&
+        !e.target.closest('.ribbon-tabs-nav')
+    ) {
+        // Ribbon navigation must not be treated as an outside click that closes
+        // the Table Design tab immediately after the user selects it.
         ActiveTableEngine.deselect();
     }
 });
@@ -3180,7 +3186,8 @@ document.addEventListener('click', (e) => {
     if (!tabBtn) return;
 
     e.preventDefault();
-    e.stopPropagation();
+    // Let the ribbon interaction module receive the bubbling event so it can
+    // reveal the panel, maintain the pin state and reset its idle timer.
 
     const tabKey = tabBtn.getAttribute('data-tab');
     if (!tabKey) return;
