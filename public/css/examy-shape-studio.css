@@ -1,0 +1,30 @@
+/* Editable shape gallery and page objects */
+.examy-shapes-modal{position:fixed;inset:0;z-index:1000000;background:rgba(8,15,30,.58);display:none;align-items:center;justify-content:center;padding:20px}
+.examy-shapes-modal.active{display:flex}
+.examy-shapes-dialog{width:min(900px,96vw);max-height:86vh;display:flex;flex-direction:column;background:var(--ex-surface,#fff);color:var(--ex-text,#20304d);border:1px solid var(--ex-border,#d5deee);border-radius:18px;box-shadow:0 24px 70px #0005;overflow:hidden}
+.examy-shapes-dialog header,.examy-shapes-dialog footer{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;background:var(--ex-surface-2,#f5f7fc);border-bottom:1px solid var(--ex-border,#d5deee)}
+.examy-shapes-dialog header small{display:block;color:var(--ex-muted,#637491);margin-top:4px}
+.examy-shapes-dialog header button,.examy-shapes-dialog footer button{border:0;border-radius:8px;padding:8px 12px;background:#64748b;color:#fff;cursor:pointer}
+.examy-shape-cats{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--ex-border,#d5deee)}
+.examy-shape-cats button{border:1px solid var(--ex-border);background:var(--ex-surface-2);color:var(--ex-text);padding:8px 12px;border-radius:9px;cursor:pointer;font:inherit}
+.examy-shape-cats button.active{background:#4f63e8;color:white;border-color:#4f63e8}
+.examy-shape-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(105px,1fr));gap:9px;padding:16px;overflow:auto}
+.examy-shape-card{display:flex;min-height:94px;flex-direction:column;align-items:center;justify-content:center;gap:7px;border:1px solid var(--ex-border);border-radius:11px;background:var(--ex-surface-2);color:var(--ex-text);cursor:pointer}
+.examy-shape-card:hover{border-color:#4f63e8;background:color-mix(in srgb,#4f63e8 10%,var(--ex-surface))}
+.examy-shape-card svg{width:52px;height:42px}
+.examy-shape-card svg *{fill:#dbeafe;stroke:#334155;stroke-width:2.4;stroke-linejoin:round}
+.examy-shape-card span{font-size:11px;font-weight:700}
+.examy-shapes-dialog footer{border-top:1px solid var(--ex-border);border-bottom:0;color:var(--ex-muted);font-size:12px}
+.examy-shape-color{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700}
+.examy-shape-color input{width:30px!important;height:26px;padding:0!important;border:0!important;background:transparent!important}
+.a4-sheet .sheet-frame-box{position:relative}
+.examy-shape-object{position:absolute;z-index:60;min-width:40px;min-height:35px;touch-action:none;cursor:move;user-select:none;box-sizing:border-box}
+.examy-shape-object .examy-shape-svg{width:100%;height:100%;overflow:visible;display:block}
+.examy-shape-object .examy-shape-svg *{vector-effect:non-scaling-stroke}
+.examy-shape-object.is-selected{outline:1px dashed #2563eb;outline-offset:3px}
+.examy-shape-object button{display:none;position:absolute;width:21px;height:21px;border:1px solid white;border-radius:50%;background:#2563eb;color:white;font-size:14px;line-height:18px;padding:0;cursor:pointer;z-index:2}
+.examy-shape-object.is-selected button{display:block}
+.examy-shape-object .shape-rotate-handle{top:-27px;left:calc(50% - 10px)}
+.examy-shape-object .shape-resize-handle{bottom:-10px;right:-10px;border-radius:4px;background:#0f766e}
+.examy-shape-object .shape-delete-handle{top:-10px;right:-10px;background:#dc2626}
+@media print{.examy-shape-object{outline:0!important}.examy-shape-object button{display:none!important}}
