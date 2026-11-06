@@ -4,7 +4,7 @@
  const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
  let activeTable=null;
  function tableFromNode(node){const el=node?.nodeType===3?node.parentElement:node;return el?.closest?.('#sheetsWrapper table')||null}
- function showTableTab(table){const tab=$('#tabBtnTableDesign'),panel=$('#rtab-tableDesign');if(!tab||!panel)return;activeTable=table||activeTable;tab.style.display=activeTable?'inline-flex':'none';panel.dataset.contextTable=activeTable?'active':'inactive';if(!activeTable&&tab.classList.contains('active')){tab.classList.remove('active');panel.classList.remove('active');const home=$('.r-tab-btn[data-tab="home"]');const homePanel=$('#rtab-home');home?.classList.add('active');homePanel?.classList.add('active')}}
+ function showTableTab(table){const tab=$('#tabBtnTableDesign'),panel=$('#rtab-tableDesign');if(!tab||!panel)return;if (table !== undefined) activeTable=table;tab.style.display=activeTable?'inline-flex':'none';panel.dataset.contextTable=activeTable?'active':'inactive';if(!activeTable&&tab.classList.contains('active')){tab.classList.remove('active');panel.classList.remove('active');const home=$('.r-tab-btn[data-tab="home"]');const homePanel=$('#rtab-home');home?.classList.add('active');homePanel?.classList.add('active')}}
  function bindTableContext(){const toolbar=$('#mainToolbar');if(!toolbar)return;
   document.addEventListener('pointerdown',e=>{const table=tableFromNode(e.target);if(table){showTableTab(table);return}if(e.target.closest('#tabBtnTableDesign,#rtab-tableDesign'))return;activeTable=null;showTableTab(null)},true);
   document.addEventListener('focusin',e=>{const table=tableFromNode(e.target);if(table)showTableTab(table)},true);
