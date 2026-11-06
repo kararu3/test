@@ -104,8 +104,12 @@ function buildPreviewDock(){
 function addAdvancedWorkspace(){
  const nav=$('.ribbon-tabs-nav'),host=$('.ribbon-panels-host');if(!nav||!host||$('#rtab-advancedStudio'))return;
  const tab=document.createElement('button');tab.type='button';tab.className='r-tab-btn';tab.dataset.tab='advancedStudio';tab.textContent='🧠 الاستوديو المتقدم';nav.appendChild(tab);
- const panel=document.createElement('div');panel.id='rtab-advancedStudio';panel.className='ribbon-tab-panel';panel.innerHTML='<section class="r-group"><span class="r-group-title">إنشاء ذكي</span><div class="r-group-row"><button type="button" class="tool-btn" id="exAdvAI">✨ مساعد الأسئلة الذكي</button><button type="button" id="exAdvAnswer" class="tool-btn">📝 ورقة إجابة الطالب</button><button type="button" id="exAdvShuffle" class="tool-btn">🔀 إنشاء نموذج بديل</button></div></section><section class="r-group"><span class="r-group-title">تنظيم الاختبار</span><div class="r-group-row"><button type="button" id="exAdvBalance" class="tool-btn">⚖️ توزيع الدرجات</button><button type="button" id="exAdvSpacing" class="tool-btn">↕️ موازنة المسافات</button><button type="button" id="exAdvShrink" class="tool-btn">📄 ملاءمة محتوى الصفحة</button></div></section><section class="r-group"><span class="r-group-title">الفحص والجودة</span><div class="r-group-row"><button type="button" id="exAdvPreflight" class="tool-btn">🔎 فحص قبل الطباعة</button><button type="button" id="exAdvPageFlow" class="tool-btn">📚 إعادة توزيع الصفحات</button><button type="button" id="exAdvFind" class="tool-btn">🔍 بحث واستبدال</button></div></section>';
- host.appendChild(panel);
+ const panel=document.createElement('div');panel.id='rtab-advancedStudio';panel.className='ribbon-tab-panel';panel.innerHTML=`
+  <section class="r-group"><span class="r-group-title">✨ الإنشاء الذكي والنماذج</span><p class="examy-advanced-hint">توليد الأسئلة وتجهيز نسخ مختلفة من الاختبار.</p><div class="r-group-row"><button type="button" class="tool-btn" id="exAdvAI">✨ مساعد الأسئلة الذكي</button><button type="button" id="exAdvAnswer" class="tool-btn">📝 ورقة إجابة الطالب</button><button type="button" id="exAdvShuffle" class="tool-btn">🔀 إنشاء نموذج بديل</button></div></section>
+  <section class="r-group"><span class="r-group-title">📐 تنظيم المحتوى والدرجات</span><p class="examy-advanced-hint">توزيع الدرجات وضبط الفراغات وملاءمة الورقة.</p><div class="r-group-row"><button type="button" id="exAdvBalance" class="tool-btn">⚖️ توزيع الدرجات</button><button type="button" id="exAdvSpacing" class="tool-btn">↕️ موازنة المسافات</button><button type="button" id="exAdvShrink" class="tool-btn">📄 ملاءمة محتوى الصفحة</button></div></section>
+  <section class="r-group"><span class="r-group-title">🔍 الفحص والمراجعة</span><p class="examy-advanced-hint">اكتشاف مشاكل المستند قبل الطباعة وإدارة النصوص.</p><div class="r-group-row"><button type="button" id="exAdvPreflight" class="tool-btn">فحص قبل الطباعة</button><button type="button" id="exAdvPageFlow" class="tool-btn">إعادة توزيع الصفحات</button><button type="button" id="exAdvFind" class="tool-btn">بحث واستبدال</button></div></section>
+  <section class="r-group"><span class="r-group-title">◈ الرسم والأشكال</span><p class="examy-advanced-hint">إدراج رسومات هندسية ورياضية وعربية قابلة للتحرير.</p><div class="r-group-row"><button type="button" id="exAdvShapes" class="tool-btn">فتح معرض الأشكال</button></div></section>`;
+host.appendChild(panel);
  $('#exAdvAI').onclick=openAIStudio;
  $('#exAdvAnswer').onclick=()=>{if(typeof AdvancedExamTools!=='undefined')AdvancedExamTools.generateStudentAnswerSheet()};
  $('#exAdvShuffle').onclick=()=>{if(typeof AdvancedExamTools!=='undefined')AdvancedExamTools.generateShuffleVersion('ب')};
@@ -115,6 +119,7 @@ function addAdvancedWorkspace(){
  $('#exAdvPreflight').onclick=()=>{if(typeof PreFlightSystem!=='undefined')PreFlightSystem.openPreflightModal()};
  $('#exAdvPageFlow').onclick=()=>{if(typeof ExamyPages!=='undefined')ExamyPages.flow()};
  $('#exAdvFind').onclick=()=>{if(typeof FindReplace!=='undefined')FindReplace.toggle()};
+ $('#exAdvShapes').onclick=()=>window.ExamyShapeStudio?.open();
 }
 function addAIStudio(){
  const home=$('#rtab-home');if(home&&!$('#examyAIStudioBtn')){
