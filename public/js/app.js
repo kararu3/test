@@ -5,6 +5,32 @@
 
 
 
+function sanitizeExamHtml(markup) {
+    if (window.ExamyUltimate && typeof window.ExamyUltimate.sanitizeHTML === 'function') {
+        return window.ExamyUltimate.sanitizeHTML(markup);
+    }
+    const template = document.createElement('template');
+    template.innerHTML = String(markup || '');
+    template.content.querySelectorAll('script,iframe,object,embed,form').forEach(el => el.remove());
+    template.content.querySelectorAll('*').forEach(el => Array.from(el.attributes).forEach(attr => {
+        const name = attr.name.toLowerCase();
+        const value = String(attr.value || '').trim();
+        if (name.startsWith('on') || (['href','src','xlink:href','action'].includes(name) && /^javascript:/i.test(value))) el.removeAttribute(attr.name);
+    }));
+    return template.innerHTML;
+}
+function downloadExamyBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url; anchor.download = filename; anchor.style.display = 'none';
+    document.body.appendChild(anchor); anchor.click(); anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+function readStoredJson(key, fallback) {
+    try { const parsed = JSON.parse(localStorage.getItem(key) || ''); return parsed == null ? fallback : parsed; }
+    catch (_) { return fallback; }
+}
+
 window.recordUndoState = function() {
     if (typeof undoHistory === 'undefined') window.undoHistory = [];
     const wrapper = document.getElementById("sheetsWrapper");
@@ -1291,7 +1317,7 @@ function restoreSavedSessionBackup() {
     const backup = localStorage.getItem("examy_session_backup");
     if (backup) {
         const stage = document.getElementById("sheetsWrapper");
-        if (stage) stage.innerHTML = backup;
+        if (stage) stage.innerHTML = sanitizeExamHtml(backup);
         if (typeof reindexAllQuestions === 'function') reindexAllQuestions();
         updateUIIndicators();
         if (typeof SoundFX !== 'undefined') SoundFX.success();
@@ -2159,7 +2185,7 @@ function loadSelectedTemplate() {
         recordUndoState();
         const stage = document.getElementById("sheetsWrapper");
         if (stage && target.content) {
-            stage.innerHTML = target.content;
+            stage.innerHTML = sanitizeExamHtml(target.content);
         }
 
         // 1. استرجاع وتطبيق سمك وشكل ولون الإطار
@@ -2335,7 +2361,7 @@ function loadDefaultTemplateIfAvailable() {
 }
 
 function applyTemplateData(t) {
-    if (t.htmlPayload) document.getElementById("sheetsWrapper").innerHTML = t.htmlPayload;
+    if (t.htmlPayload) document.getElementById("sheetsWrapper").innerHTML = sanitizeExamHtml(t.htmlPayload);
     if (t.watermark) watermarkConfig = t.watermark;
     if (t.borderSettings) activeBorderSettings = t.borderSettings;
     if (t.frameInset) syncFrameInset(parseInt(t.frameInset) || 12);
@@ -2510,7 +2536,7 @@ function loadExamFromArchive(id) {
     const target = list.find(x => x.id === id);
     if (target) {
         if (typeof SoundFX !== 'undefined') SoundFX.success();
-        document.getElementById("sheetsWrapper").innerHTML = target.htmlPayload;
+        document.getElementById("sheetsWrapper").innerHTML = sanitizeExamHtml(target.htmlPayload);
         examUid = target.id;
         document.getElementById("examIdSpan").textContent = examUid;
         if (typeof restoreUIStateAfterDomUpdate === 'function') restoreUIStateAfterDomUpdate();
@@ -2788,26 +2814,16 @@ async function exportDirectPNG() {
 // تصدير حزمة احتياطية كاملة (Backup Package)
 function exportFullBackupZip() {
     if (typeof SoundFX !== 'undefined') SoundFX.success();
-    const fullArchive = localStorage.getItem('examy_archive') || '[]';
-    const templates = localStorage.getItem('examy_custom_templates') || '[]';
-    const bankAr = localStorage.getItem('exambuilder_bank_ar') || '[]';
-    const bankEn = localStorage.getItem('exambuilder_bank_en') || '[]';
-
     const backupPackage = {
         app: "Examy PRO",
         exportedAt: new Date().toISOString(),
-        archive: JSON.parse(fullArchive),
-        templates: JSON.parse(templates),
-        bank_ar: JSON.parse(bankAr),
-        bank_en: JSON.parse(bankEn)
+        archive: readStoredJson('examy_archive', []),
+        templates: readStoredJson('examy_custom_templates', []),
+        bank_ar: readStoredJson('exambuilder_bank_ar', []),
+        bank_en: readStoredJson('exambuilder_bank_en', [])
     };
-
     const blob = new Blob([JSON.stringify(backupPackage, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `Examy_PRO_Full_Backup_${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+    downloadExamyBlob(blob, `Examy_PRO_Full_Backup_${Date.now()}.json`);
 }
 
 function exportExamFile() {
@@ -2830,45 +2846,51 @@ function exportExamFile() {
     };
 
     const blob = new Blob([JSON.stringify(examPackage, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `${examPackage.meta.title}_${examUid}.exam`;
-    a.click();
-    URL.revokeObjectURL(a.href);
+    downloadExamyBlob(blob, `${examPackage.meta.title}_${examUid}.exam`);
 }
 
 function handleImportExamFile(event) {
-    const file = event.target.files[0];
+    const file = event.target.files?.[0];
     if (!file) return;
-
+    if (file.size > 25 * 1024 * 1024) {
+        alert("حجم ملف الاختبار يتجاوز الحد المسموح (25MB).");
+        event.target.value = '';
+        return;
+    }
     const reader = new FileReader();
     reader.onload = function(e) {
         try {
             const pkg = JSON.parse(e.target.result);
-            if (!pkg.payloadHtml) throw new Error();
-
+            if (!pkg || typeof pkg.payloadHtml !== 'string' || !pkg.payloadHtml.trim()) throw new Error('ملف الاختبار لا يحتوي على مستند صالح.');
+            const meta = pkg.meta && typeof pkg.meta === 'object' ? pkg.meta : {};
             recordUndoState();
-            if (typeof SoundFX !== 'undefined') SoundFX.success();
-
-            document.getElementById("sheetsWrapper").innerHTML = pkg.payloadHtml;
-            examUid = pkg.meta.id || examUid;
-            document.getElementById("examIdSpan").textContent = examUid;
-
-            if (pkg.meta.watermark) watermarkConfig = pkg.meta.watermark;
-            if (pkg.meta.borderSettings) activeBorderSettings = pkg.meta.borderSettings;
-            if (pkg.meta.sheetBg) sheetBgConfig = pkg.meta.sheetBg;
-            if (pkg.meta.numberSystem) changeNumberSystem(pkg.meta.numberSystem);
-            if (pkg.meta.paperSize) handlePaperSizeChange(pkg.meta.paperSize);
-            if (typeof pkg.meta.bookletMode !== 'undefined') handleBookletToggle(pkg.meta.bookletMode);
-
+            document.getElementById("sheetsWrapper").innerHTML = sanitizeExamHtml(pkg.payloadHtml);
+            examUid = String(meta.id || examUid).slice(0, 120);
+            const idDisplay = document.getElementById("examIdSpan");
+            if (idDisplay) idDisplay.textContent = examUid;
+            if (meta.watermark) watermarkConfig = meta.watermark;
+            if (meta.borderSettings) activeBorderSettings = meta.borderSettings;
+            if (meta.sheetBg) sheetBgConfig = meta.sheetBg;
+            if (meta.numberSystem) changeNumberSystem(meta.numberSystem);
+            if (meta.paperSize && ['A4','A3','A5','Letter','Legal','Tabloid','Executive','B5'].includes(meta.paperSize)) handlePaperSizeChange(meta.paperSize);
+            if (typeof meta.bookletMode !== 'undefined') handleBookletToggle(!!meta.bookletMode);
             if (typeof restoreUIStateAfterDomUpdate === 'function') restoreUIStateAfterDomUpdate();
+            if (typeof applyBorderToAllSheets === 'function') applyBorderToAllSheets();
+            if (typeof applyWatermarkSettings === 'function') applyWatermarkSettings();
+            if (typeof applySheetBgSettings === 'function') applySheetBgSettings();
+            if (typeof reindexAllQuestions === 'function') reindexAllQuestions();
+            if (typeof updateUIIndicators === 'function') updateUIIndicators();
+            if (typeof SoundFX !== 'undefined') SoundFX.success();
             alert("تم استيراد ملف الاختبار بنجاح!");
-        } catch {
-            alert("عذراً، ملف الاختبار غير صالح أو تالف!");
+        } catch (error) {
+            console.error("فشل استيراد ملف الاختبار:", error);
+            alert(error.message || "عذراً، ملف الاختبار غير صالح أو تالف!");
+        } finally {
+            event.target.value = '';
         }
     };
+    reader.onerror = function() { alert("تعذر قراءة ملف الاختبار."); event.target.value = ''; };
     reader.readAsText(file);
-    event.target.value = '';
 }
 // متغير لحفظ التحديد قبل النقر على أزرار لوحة الألوان
 let savedTextSelectionRange = null;
@@ -3009,7 +3031,7 @@ if (window.examy) {
                 const pkg = JSON.parse(jsonRaw);
                 if (pkg.payloadHtml) {
                     recordUndoState();
-                    document.getElementById("sheetsWrapper").innerHTML = pkg.payloadHtml;
+                    document.getElementById("sheetsWrapper").innerHTML = sanitizeExamHtml(pkg.payloadHtml);
                     if (pkg.meta) {
                         examUid = pkg.meta.id || examUid;
                         document.getElementById("examIdSpan").textContent = examUid;
