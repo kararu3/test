@@ -4,7 +4,7 @@
 const $=id=>document.getElementById(id), root=()=> $('sheetsWrapper');
 const toast=(m)=>{if(window.UIEffects?.showToast)UIEffects.showToast(m,'success',2600);else console.info('[Examy]',m)};
 const safe=(fn)=>{try{return fn()}catch(e){console.error('[Examy]',e);toast('تعذر تنفيذ العملية؛ راجع وحدة التحكم');return null}};
-const store=(k,v)=>localStorage.setItem('examy.pro.'+k,JSON.stringify(v));
+const store=(k,v)=>{try{localStorage.setItem('examy.pro.'+k,JSON.stringify(v));return true}catch(e){console.warn('[Examy] تعذر حفظ الحالة المحلية (قد تكون المساحة ممتلئة):',e);return false}};
 const read=(k,d)=>{try{return JSON.parse(localStorage.getItem('examy.pro.'+k))??d}catch{return d}};
 /* 1) Unified frame controls: numeric input + slider + keyboard arrows */
 window.ExamyFrame={
@@ -18,7 +18,7 @@ window.ExamyFrame={
 const oldSync=window.syncBorderSettings;window.syncBorderSettings=function(prop,val){if(prop==='size')return ExamyFrame.applySize(parseFloat(val));if(prop==='shape'||prop==='color'){if(prop==='shape')activeBorderSettings.shape=val;else activeBorderSettings.color=val;safe(()=>applyBorderToAllSheets());store('frame',{...activeBorderSettings,inset:parseFloat(activeFrameInset)||12});return;}return oldSync?.(prop,val)};
 const oldInset=window.syncFrameInset;window.syncFrameInset=function(v){const out=oldInset?.(v);const n=Math.min(30,Math.max(2,Number(v)||2));const i=$('examyFrameInsetNumber');if(i&&document.activeElement!==i)i.value=n;store('frame',{...activeBorderSettings,inset:n});return out};
 /* 2) Page flow guard: reflow after meaningful edits without splitting question cards */
-let flowQueued=false;document.addEventListener('examy:contentchange',()=>{if(flowQueued)return;flowQueued=true;requestAnimationFrame(()=>{flowQueued=false;safe(()=>window.ExamyPages?.flow())})});
+let flowQueued=false;document.addEventListener('examy:contentchange',()=>{if(flowQueued)return;flowQueued=true;requestAnimationFrame(()=>{flowQueued=false;safe(()=>window.ExamyUltimate?.scheduleFlow?.())})});
 /* 3) Autosave and crash recovery */
 let lastSnapshot='';function snapshot(){const w=root();if(!w)return;const html=w.innerHTML;if(html===lastSnapshot)return;lastSnapshot=html;store('autosave',{html,at:Date.now(),title:$('hdrCenter')?.innerText||'اختبار'});}
 window.addEventListener('DOMContentLoaded',()=>{ExamyFrame.init();const draft=read('autosave',null);if(draft?.html&&root()&&!root().children.length){const b=$('crashRecoveryBanner');if(b)b.style.display='flex';}setInterval(snapshot,1800);window.addEventListener('beforeunload',snapshot);});
