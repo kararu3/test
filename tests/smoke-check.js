@@ -47,7 +47,7 @@ for (const token of ['requestSingleInstanceLock', 'isTrustedSender', 'setPermiss
 if (main.includes('const cmd = `rundll32')) fail('Printer name must never be interpolated into a shell command');
 
 const server = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
-for (const token of ['isLoopbackRequest', '10 * 1024 * 1024', 'queue.slice(0, 500)', "req.path === '/lan/submit'"]) {
+for (const token of ['isLoopbackRequest', '10 * 1024 * 1024', '50 * 1024 * 1024', "req.path === '/lan/submit'"]) {
   if (!server.includes(token)) fail('Missing local API / LAN protection: ' + token);
 }
 
@@ -61,7 +61,7 @@ if (!controlCss.includes('user-select:text!important')) fail('Numeric/form contr
 if (!controlJs.includes('ExamyControlAudit')) fail('Control audit diagnostic missing');
 
 const ultimate = fs.readFileSync(path.join(root, 'public/js/ultimate-engine.js'), 'utf8');
-for (const feature of ['setPageSize', 'setMargins', 'setHeaderFooter', 'refreshPageNumbers', 'generateVariants', 'backup', 'restore', 'importDocument', 'insertTable']) {
+for (const feature of ['A5', 'Legal', 'setPageSize', 'setMargins', 'setHeaderFooter', 'refreshPageNumbers', 'generateVariants', 'backup', 'restore', 'importDocument', 'insertTable']) {
   if (!ultimate.includes(feature)) fail('Missing Ultimate feature: ' + feature);
 }
 const state = fs.readFileSync(path.join(root, 'public/js/state.js'), 'utf8');
