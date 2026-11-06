@@ -61,9 +61,17 @@ if (!controlCss.includes('user-select:text!important')) fail('Numeric/form contr
 if (!controlJs.includes('ExamyControlAudit')) fail('Control audit diagnostic missing');
 
 const ultimate = fs.readFileSync(path.join(root, 'public/js/ultimate-engine.js'), 'utf8');
+for (const token of ['sanitizeHTML', 'setTimeout(()=>URL.revokeObjectURL(url),30000)', 'api.openEquationEditor();']) {
+  if (!ultimate.includes(token)) fail('Missing backup/import/equation safeguard: ' + token);
+}
+if (!app.includes('window.ExamyUltimate.setPageSize(val, orientation)')) fail('Paper-size selector must update actual page geometry');
 for (const feature of ['A5', 'Legal', 'setPageSize', 'setMargins', 'setHeaderFooter', 'refreshPageNumbers', 'generateVariants', 'backup', 'restore', 'importDocument', 'insertTable']) {
   if (!ultimate.includes(feature)) fail('Missing Ultimate feature: ' + feature);
 }
+const bridge = fs.readFileSync(path.join(root, 'public/js/examy-feature-bridge.js'), 'utf8');
+if (!bridge.includes('window.ExamyUltimate?.scheduleFlow?.()')) fail('Page flow bridge must call the active pagination engine');
+if (!bridge.includes('setTimeout(()=>URL.revokeObjectURL(url),30000)')) fail('Question bank download must not revoke its URL immediately');
+
 const state = fs.readFileSync(path.join(root, 'public/js/state.js'), 'utf8');
 if (state.includes("require('electron')")) fail('Renderer must not import Electron directly');
 
