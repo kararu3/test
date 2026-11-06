@@ -3031,6 +3031,10 @@ function handleImportExamFile(event) {
             if (meta.watermark) watermarkConfig = meta.watermark;
             if (meta.borderSettings) activeBorderSettings = meta.borderSettings;
             if (meta.sheetBg) sheetBgConfig = meta.sheetBg;
+            if (meta.lang && ['ar','en'].includes(meta.lang)) {
+                currentLang = meta.lang;
+                if (typeof applyLanguageMode === 'function') applyLanguageMode(meta.lang);
+            }
             if (meta.numberSystem) changeNumberSystem(meta.numberSystem);
             if (meta.paperSize && ['A4','A3','A5','Letter','Legal','Tabloid','Executive','B5'].includes(meta.paperSize)) handlePaperSizeChange(meta.paperSize);
             if (typeof meta.bookletMode !== 'undefined') handleBookletToggle(!!meta.bookletMode);
