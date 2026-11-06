@@ -4,7 +4,7 @@ This branch contains targeted fixes based on the current repository. It is not r
 
 ## Changes made in this branch
 
-- Fixed ribbon click propagation so the ribbon interaction controller receives tab clicks and can reveal the selected panel, preserve pin behavior, and reset its idle timer.
+- Fixed ribbon click propagation so the ribbon interaction controller receives tab clicks and can reveal the selected panel, preserve pin behavior, and reset its idle timer. The ribbon now opens pinned by default on first launch.
 - Prevented table-selection cleanup from treating clicks on the ribbon navigation as outside clicks; this stops the Table Design tab from closing immediately when selected.
 - Connected paper-size selection to the page geometry engine. Added A5, Legal, Tabloid, Executive, and B5 dimensions and validated page orientation.
 - Corrected Electron .exam file-open handling: moved argument parsing out of the window factory, queued files until the renderer is ready, avoided duplicate sends, added a file-size limit, and handled second-instance/open-file events.
@@ -15,6 +15,7 @@ This branch contains targeted fixes based on the current repository. It is not r
 - Restricted non-LAN API routes to loopback clients. Kept only LAN discovery and submission reachable to other local-network devices.
 - Reduced JSON request body size, limited individual LAN submissions, and bounded the LAN inbox by both record count and total stored bytes.
 - Made local autosave storage failures non-fatal and connected the page-flow bridge to the active pagination engine.
+- Hardened backup/restore handling, sanitized imported HTML from Word/PDF and backup files, delayed object-URL revocation so downloads can start, and connected the equation button to the visual MathLive editor.
 - Added an npm test smoke-check command and a Windows GitHub Actions workflow to run syntax/smoke checks, build the installer, and package the source ZIP.
 
 ## Verification status
