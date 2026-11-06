@@ -14,15 +14,34 @@
   showTableTab(null);
  }
  const roles=[
-  ['save',/حفظ|أرشيف|نسخة احتياطية|تصدير/],['insert',/إدراج|صورة|شكل|جدول|سؤال توصيل|خيارات|باركود|رمز/],
-  ['print',/طباعة|معاينة|pdf|png/],['delete',/حذف|مسح|إزالة/],['edit',/تراجع|إعادة|قص|نسخ|لصق|بحث|استبدال/],
-  ['format',/خط|حجم|غامق|مائل|لون|محاذاة|تنسيق|مسافة/],['ai',/ذكي|ذكاء|مساعد|توليد|نموذج بديل/],
-  ['layout',/صفحة|هامش|مسطرة|اتجاه|ورقة|إطار|تخطيط/],['table',/صف|عمود|خلية|جدول/]
+  ['delete',/حذف|مسح|إزالة|تفريغ/],
+  ['save',/حفظ|أرشيف|نسخة احتياطية|تصدير|تنزيل|استيراد/],
+  ['print',/طباعة|معاينة|pdf|png|ورقة إجابة/],
+  ['ai',/ذكي|ذكاء|مساعد|توليد|نموذج بديل/],
+  ['table',/صف|عمود|خلية|جدول/],
+  ['insert',/إدراج|إضافة|جديد|صورة|شكل|سؤال|خيارات|باركود|رمز|معادلة/],
+  ['layout',/صفحة|هامش|مسطرة|اتجاه|ورقة|إطار|تخطيط|حجم/],
+  ['format',/خط|حجم|غامق|مائل|لون|محاذاة|تنسيق|مسافة|تمييز/],
+  ['edit',/تراجع|إعادة|قص|نسخ|لصق|بحث|استبدال|تحريك|تكرار/]
  ];
- function paintToolbarButtons(){ $$('#mainToolbar .tool-btn, #mainToolbar .ribbon-btn, #mainToolbar .hdr-mini-btn').forEach(button=>{
-   if(button.classList.contains('ribbon-pin-toggle')||button.classList.contains('r-tab-btn'))return;
-   const label=[button.textContent,button.title,button.getAttribute('onclick')].filter(Boolean).join(' ');
-   const match=roles.find(([,re])=>re.test(label));if(match)button.dataset.examyRole=match[0];
+ function groupRole(button){
+  const group=button.closest('.r-group');
+  const title=group?.querySelector('.r-group-title')?.textContent||'';
+  if(/سؤال|إدراج|إضافة/.test(title))return 'insert';
+  if(/تنسيق|خط|محاذاة/.test(title))return 'format';
+  if(/حفظ|ملف|أرشيف/.test(title))return 'save';
+  if(/طباعة|معاينة/.test(title))return 'print';
+  if(/جدول/.test(title))return 'table';
+  if(/ذكاء|ذكي/.test(title))return 'ai';
+  if(/صفحة|تخطيط/.test(title))return 'layout';
+  return 'primary';
+ }
+ function paintToolbarButtons(){
+  $$('#mainToolbar button:not(.r-tab-btn):not(.ribbon-pin-toggle)').forEach(button=>{
+   if(button.matches('input,select,[role="switch"]'))return;
+   const label=[button.textContent,button.title,button.getAttribute('aria-label'),button.getAttribute('onclick'),button.id].filter(Boolean).join(' ');
+   const match=roles.find(([,re])=>re.test(label));
+   button.dataset.examyRole=match?match[0]:groupRole(button);
   });
  }
  function boot(){
