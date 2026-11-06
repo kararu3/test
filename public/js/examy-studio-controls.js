@@ -26,7 +26,7 @@ function addLayoutTools(){
  ['examyMarginTop','examyMarginBottom','examyMarginRight','examyMarginLeft'].forEach(id=>$('#'+id).addEventListener('keydown',e=>{if(e.key==='Enter')applyMargins()}));
  const ruler=$('#examyRulerToggle');let visible=localStorage.getItem('examy_ruler_visible')==='true';setRuler(visible);
  ruler.addEventListener('click',()=>{visible=!visible;setRuler(visible)});
- function setRuler(v){localStorage.setItem('examy_ruler_visible',String(v));ruler.textContent=v?'📏 إخفاء المسطرة':'📏 إظهار المسطرة';$$('.sheet-ruler,.sheet-ruler-top,.sheet-ruler-side,.ruler-horizontal,.ruler-vertical').forEach(x=>x.style.display=v?'':'none');document.body.classList.toggle('examy-rulers-on',v)}
+ function setRuler(v){localStorage.setItem('examy_ruler_visible',String(v));ruler.textContent=v?'📏 إخفاء المسطرة':'📏 إظهار المسطرة';$('.examy-ruler,.sheet-ruler,.sheet-ruler-top,.sheet-ruler-side,.ruler-horizontal,.ruler-vertical').forEach(x=>{x.hidden=!v;x.style.display=v?'':'none'});if(window.ExamyUltimate?.refreshRulers)window.ExamyUltimate.refreshRulers();document.body.classList.toggle('examy-rulers-on',v)}
 }
 function applyMargins(){
  const vals={top:+$('#examyMarginTop').value||0,bottom:+$('#examyMarginBottom').value||0,right:+$('#examyMarginRight').value||0,left:+$('#examyMarginLeft').value||0};
