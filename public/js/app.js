@@ -2814,18 +2814,130 @@ async function exportDirectPNG() {
 }
 
 // تصدير حزمة احتياطية كاملة (Backup Package)
-function exportFullBackupZip() {
+async function exportFullBackupZip() {
     if (typeof SoundFX !== 'undefined') SoundFX.success();
-    const backupPackage = {
-        app: "Examy PRO",
-        exportedAt: new Date().toISOString(),
-        archive: readStoredJson('examy_archive', []),
-        templates: readStoredJson('examy_custom_templates', []),
-        bank_ar: readStoredJson('exambuilder_bank_ar', []),
-        bank_en: readStoredJson('exambuilder_bank_en', [])
-    };
-    const blob = new Blob([JSON.stringify(backupPackage, null, 2)], { type: 'application/json' });
-    downloadExamyBlob(blob, `Examy_PRO_Full_Backup_${Date.now()}.json`);
+    try {
+        const fetchList = async (fn, fallback) => {
+            try {
+                const result = await fn();
+                return Array.isArray(result) && result.length ? result : fallback;
+            } catch (_) { return fallback; }
+        };
+        const localBankAr = readStoredJson('exambuilder_bank_ar', []);
+        const localBankEn = readStoredJson('exambuilder_bank_en', []);
+        const localArchive = readStoredJson('examy_archive_db', []);
+        const [archiveAr, archiveEn, bankAr, bankEn] = await Promise.all([
+            fetchList(() => AppAPI.fetchArchive('ar'), localArchive),
+            fetchList(() => AppAPI.fetchArchive('en'), []),
+            fetchList(() => AppAPI.fetchBank('ar'), localBankAr),
+            fetchList(() => AppAPI.fetchBank('en'), localBankEn)
+        ]);
+        const localStorageData = {};
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i) || '';
+            if (/^(exambuilder_|examy[._])/.test(key) && !/(license|token|api.?key)/i.test(key)) {
+                localStorageData[key] = localStorage.getItem(key);
+            }
+        }
+        const backupPackage = {
+            app: "Examy PRO",
+            version: 2,
+            exportedAt: new Date().toISOString(),
+            archives: { ar: archiveAr, en: archiveEn },
+            banks: { ar: bankAr, en: bankEn },
+            local: {
+                archiveDb: localArchive,
+                templatesVault: readStoredJson('examy_templates_vault', []),
+                defaultTemplate: readStoredJson('examy_default_user_template', null)
+            },
+            localStorage: localStorageData
+        };
+        const blob = new Blob([JSON.stringify(backupPackage, null, 2)], { type: 'application/json' });
+        downloadExamyBlob(blob, `Examy_PRO_Full_Backup_${Date.now()}.json`);
+        if (typeof UIEffects !== 'undefined') UIEffects.showToast('تم تصدير الأرشيف وبنوك الأسئلة والقوالب والإعدادات.', 'success');
+    } catch (error) {
+        console.error('فشل إنشاء النسخة الاحتياطية:', error);
+        alert('تعذر إنشاء النسخة الاحتياطية: ' + error.message);
+    }
+}
+
+function importFullBackupZip() {
+    let input = document.getElementById('examyFullBackupInput');
+    if (!input) {
+        input = document.createElement('input');
+        input.type = 'file'; input.id = 'examyFullBackupInput';
+        input.accept = '.json,application/json'; input.hidden = true;
+        document.body.appendChild(input);
+        input.addEventListener('change', handleFullBackupImport);
+    }
+    input.click();
+}
+
+async function handleFullBackupImport(event) {
+    const input = event.target;
+    const file = input.files?.[0];
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) {
+        alert('حجم النسخة الاحتياطية يتجاوز الحد المسموح (50MB).'); input.value = ''; return;
+    }
+    try {
+        const backup = JSON.parse(await file.text());
+        if (!backup || backup.app !== 'Examy PRO') throw new Error('هذا الملف ليس نسخة احتياطية صالحة من Examy PRO.');
+        const banks = backup.banks || {};
+        const archives = backup.archives || {};
+        const bankAr = Array.isArray(banks.ar) ? banks.ar : [];
+        const bankEn = Array.isArray(banks.en) ? banks.en : [];
+        const archiveAr = Array.isArray(archives.ar) ? archives.ar : [];
+        const archiveEn = Array.isArray(archives.en) ? archives.en : [];
+        if (!confirm('سيتم استبدال بنوك الأسئلة والأرشيف والقوالب الحالية بمحتويات النسخة الاحتياطية. هل تريد المتابعة؟')) return;
+
+        const failures = [];
+        if (typeof AppAPI !== 'undefined' && AppAPI.replaceBank && AppAPI.replaceArchive) {
+            const jobs = [
+                ['بنك الأسئلة العربي', () => AppAPI.replaceBank('ar', bankAr)],
+                ['بنك الأسئلة الإنجليزي', () => AppAPI.replaceBank('en', bankEn)],
+                ['أرشيف الاختبارات العربي', () => AppAPI.replaceArchive('ar', archiveAr)],
+                ['أرشيف الاختبارات الإنجليزي', () => AppAPI.replaceArchive('en', archiveEn)]
+            ];
+            const results = await Promise.allSettled(jobs.map(job => job[1]()));
+            results.forEach((result, index) => { if (result.status === 'rejected') failures.push(jobs[index][0] + ': ' + result.reason.message); });
+        } else {
+            failures.push('خدمة قاعدة البيانات المحلية غير متاحة.');
+        }
+
+        const local = backup.local || {};
+        const localValues = backup.localStorage && typeof backup.localStorage === 'object' ? backup.localStorage : {};
+        try {
+            localStorage.setItem('exambuilder_bank_ar', JSON.stringify(bankAr));
+            localStorage.setItem('exambuilder_bank_en', JSON.stringify(bankEn));
+            if (Array.isArray(local.archiveDb)) localStorage.setItem('examy_archive_db', JSON.stringify(local.archiveDb));
+            if (Array.isArray(local.templatesVault)) localStorage.setItem('examy_templates_vault', JSON.stringify(local.templatesVault));
+            if (local.defaultTemplate) localStorage.setItem('examy_default_user_template', JSON.stringify(local.defaultTemplate));
+            Object.entries(localValues).forEach(([key, value]) => {
+                if (/^(exambuilder_|examy[._])/.test(key) && !/(license|token|api.?key)/i.test(key) && typeof value === 'string') {
+                    try { localStorage.setItem(key, value); } catch (error) { failures.push('إعداد ' + key + ': ' + error.message); }
+                }
+            });
+        } catch (error) {
+            failures.push('التخزين المحلي: ' + error.message);
+        }
+
+        if (typeof loadArchiveFromDb === 'function') await loadArchiveFromDb();
+        if (typeof loadTemplatesIntoSettingsUI === 'function') loadTemplatesIntoSettingsUI();
+        if (typeof refreshSavedTemplatesDropdown === 'function') refreshSavedTemplatesDropdown();
+        if (failures.length) {
+            console.error('استعادة نسخة احتياطية جزئية:', failures);
+            alert('تمت الاستعادة جزئياً، لكن تعذر استرجاع بعض البيانات:\n' + failures.join('\n'));
+        } else {
+            if (typeof UIEffects !== 'undefined') UIEffects.showToast('تمت استعادة النسخة الاحتياطية بالكامل.', 'success');
+            else alert('تمت استعادة النسخة الاحتياطية بالكامل.');
+        }
+    } catch (error) {
+        console.error('فشل استيراد النسخة الاحتياطية:', error);
+        alert(error.message || 'ملف النسخة الاحتياطية تالف أو غير صالح.');
+    } finally {
+        input.value = '';
+    }
 }
 
 function exportExamFile() {
