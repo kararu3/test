@@ -21,14 +21,18 @@ api.refreshPageNumbers=()=>{
  const a=$('#pageTotalCount'),b=$('#footerPageCountBadge'); if(a)a.textContent=total;if(b)b.textContent=total;api.refreshRulers();
 };
 api.setPageSize=(size,orientation='portrait')=>{
- if(!['A4','A3','A5','Letter'].includes(size))return false;
+ if(!['A4','A3','A5','Letter','Legal','Tabloid','Executive','B5'].includes(size))return false;
  if(!['portrait','landscape'].includes(orientation))orientation='portrait';
  undo(); api.pageSettings.size=size;api.pageSettings.orientation=orientation;
  const dimensions={
   A3:orientation==='landscape'?[1587,1123]:[1123,1587],
   A4:orientation==='landscape'?[1123,794]:[794,1123],
   A5:orientation==='landscape'?[794,559]:[559,794],
-  Letter:orientation==='landscape'?[1056,816]:[816,1056]
+  Letter:orientation==='landscape'?[1056,816]:[816,1056],
+  Legal:orientation==='landscape'?[1344,816]:[816,1344],
+  Tabloid:orientation==='landscape'?[1632,1056]:[1056,1632],
+  Executive:orientation==='landscape'?[1008,696]:[696,1008],
+  B5:orientation==='landscape'?[945,665]:[665,945]
  };
  const dims=dimensions[size];
  document.documentElement.style.setProperty('--a4-w',`${dims[0]}px`);document.documentElement.style.setProperty('--a4-h',`${dims[1]}px`);
