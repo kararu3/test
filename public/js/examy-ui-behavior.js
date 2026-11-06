@@ -25,6 +25,14 @@
    const match=roles.find(([,re])=>re.test(label));if(match)button.dataset.examyRole=match[0];
   });
  }
- function boot(){bindTableContext();paintToolbarButtons();const observer=new MutationObserver(()=>paintToolbarButtons());observer.observe($('#mainToolbar')||document.body,{childList:true,subtree:true});}
+ function boot(){
+  bindTableContext();paintToolbarButtons();
+  const toolbar=$('#mainToolbar');
+  if(toolbar&&typeof ResizeObserver!=='undefined'){
+   const syncHeight=()=>document.documentElement.style.setProperty('--examy-ribbon-height',Math.ceil(toolbar.getBoundingClientRect().height)+'px');
+   new ResizeObserver(syncHeight).observe(toolbar);syncHeight();
+  }
+  const observer=new MutationObserver(()=>paintToolbarButtons());observer.observe(toolbar||document.body,{childList:true,subtree:true});
+ }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,150));else setTimeout(boot,150);
 })();
