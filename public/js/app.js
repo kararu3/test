@@ -2892,9 +2892,10 @@ async function handleFullBackupImport(event) {
         if (!backup || backup.app !== 'Examy PRO') throw new Error('هذا الملف ليس نسخة احتياطية صالحة من Examy PRO.');
         const banks = backup.banks || {};
         const archives = backup.archives || {};
-        const bankAr = Array.isArray(banks.ar) ? banks.ar : [];
-        const bankEn = Array.isArray(banks.en) ? banks.en : [];
-        const archiveAr = Array.isArray(archives.ar) ? archives.ar : [];
+        const bankAr = Array.isArray(banks.ar) ? banks.ar : (Array.isArray(backup.bank_ar) ? backup.bank_ar : []);
+        const bankEn = Array.isArray(banks.en) ? banks.en : (Array.isArray(backup.bank_en) ? backup.bank_en : []);
+        const legacyArchive = Array.isArray(backup.archive) ? backup.archive : [];
+        const archiveAr = Array.isArray(archives.ar) ? archives.ar : legacyArchive;
         const archiveEn = Array.isArray(archives.en) ? archives.en : [];
         if (!confirm('سيتم استبدال بنوك الأسئلة والأرشيف والقوالب الحالية بمحتويات النسخة الاحتياطية. هل تريد المتابعة؟')) return;
 
@@ -2921,6 +2922,7 @@ async function handleFullBackupImport(event) {
             const displayArchive = Array.isArray(local.archiveDisplay) && local.archiveDisplay.length ? local.archiveDisplay : (currentLang === 'en' ? archiveEn : archiveAr);
             localStorage.setItem('examy_archive', JSON.stringify(displayArchive));
             if (Array.isArray(local.templatesVault)) localStorage.setItem('examy_templates_vault', JSON.stringify(local.templatesVault));
+            else if (Array.isArray(backup.templates)) localStorage.setItem('examy_templates_vault', JSON.stringify(backup.templates));
             if (local.defaultTemplate) localStorage.setItem('examy_default_user_template', JSON.stringify(local.defaultTemplate));
             Object.entries(localValues).forEach(([key, value]) => {
                 if (/^(exambuilder_|examy[._])/.test(key) && !/(license|token|api.?key)/i.test(key) && typeof value === 'string') {
