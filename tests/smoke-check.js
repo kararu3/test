@@ -56,6 +56,10 @@ if (!ribbon.includes("const KEY = 'examy.ribbon.pinned.v2'")) fail('Ribbon state
 if (!ribbon.includes('let saved = true')) fail('Ribbon must remain expanded on first launch');
 
 const app = fs.readFileSync(path.join(root, 'public/js/app.js'), 'utf8');
+for (const token of ['function sanitizeExamHtml', 'function downloadExamyBlob', '25 * 1024 * 1024', 'sanitizeExamHtml(pkg.payloadHtml)']) {
+  if (!app.includes(token)) fail('Missing safe exam import/export handling: ' + token);
+}
+if (app.includes('URL.revokeObjectURL(a.href)')) fail('Export URLs must not be revoked synchronously');
 if (!app.includes("!e.target.closest('.ribbon-tabs-nav')")) fail('Ribbon clicks must not trigger table deselection');
 if (!app.includes('Let the ribbon interaction module receive the bubbling event')) fail('Ribbon click must bubble to its interaction controller');
 
