@@ -1170,6 +1170,13 @@ function changeNumberSystem(sys) {
 function handlePaperSizeChange(val) {
     currentPaperSize = val;
     localStorage.setItem('exambuilder_paper_size', val);
+
+    // Keep the on-screen A4/A3/A5/etc. page geometry in sync with the selected
+    // print format instead of updating only the status badge.
+    if (window.ExamyUltimate && typeof window.ExamyUltimate.setPageSize === 'function') {
+        const orientation = window.ExamyUltimate.pageSettings?.orientation || 'portrait';
+        window.ExamyUltimate.setPageSize(val, orientation);
+    }
     
     const prevSelect = document.getElementById("previewPaperSizeSelect");
     if (prevSelect && prevSelect.value !== val) prevSelect.value = val;
