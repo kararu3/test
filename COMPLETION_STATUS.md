@@ -7,6 +7,10 @@ This branch contains targeted fixes based on the current repository. It is not r
 - Fixed ribbon click propagation so the ribbon interaction controller receives tab clicks and can reveal the selected panel, preserve pin behavior, and reset its idle timer. The ribbon now opens pinned by default on first launch.
 - Prevented table-selection cleanup from treating clicks on the ribbon navigation as outside clicks; this stops the Table Design tab from closing immediately when selected.
 - Connected paper-size selection to the page geometry engine. Added A5, Legal, Tabloid, Executive, and B5 dimensions, validated page orientation, and persisted/restored page size and margins on startup.
+- Added a paper-size selector directly to the Layout ribbon and synchronized it with the selected Windows printer's supported standard paper sizes, the Settings page, and print preview.
+- Kept the ribbon expanded while a select, number field, or editable control has focus so measurements and dropdown choices can be entered without the panel collapsing.
+- Fixed the ruler toggle to control the actual generated page rulers and preserve visibility when page numbers/layout are refreshed.
+- Added a dedicated PDF export mode that prints only the examination sheets and their document content; app navigation, settings, toolbars, status panels, and page-editing controls are excluded from the PDF output.
 - Corrected Electron .exam file-open handling: moved argument parsing out of the window factory, queued files until the renderer is ready, avoided duplicate sends, added a file-size limit, and handled second-instance/open-file events.
 - Added a single-instance lock and restricted Electron IPC operations to the trusted packaged renderer.
 - Restricted microphone permission to the packaged local application.
@@ -36,3 +40,6 @@ The test suite now checks required files, JSON database validity, JavaScript syn
 8. Test LAN submission from a second device and confirm only the receiving PC can view its inbox and local configuration.
 9. Test the microphone and AI assistant with a valid API key; confirm the key is never exposed to LAN clients.
 10. Test search/replace, undo/redo, image insertion, table editing, equations, variant generation, and variant comparison.
+11. Change the printer in Settings and confirm the ribbon, Settings, and preview paper-size lists all match that printer's supported paper options; test editing all numeric fields while the ribbon is open.
+12. Toggle rulers on and off, then add/reorder pages and confirm the chosen ruler state remains consistent.
+13. Export both PDF commands and confirm the PDF contains only the test paper(s), without any Examy application buttons, settings, ribbon, preview dock, or status bars.
