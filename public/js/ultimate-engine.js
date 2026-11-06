@@ -18,7 +18,9 @@ const sanitizeHTML=(html)=>{
 const api=window.ExamyUltimate=window.ExamyUltimate||{};
 
 // --- Page layout / numbering / section headers and footers ---
-api.pageSettings={size:'A4',orientation:'portrait',marginTop:15,marginRight:15,marginBottom:15,marginLeft:15,numbering:'arabic',start:1};
+const defaultPageSettings={size:localStorage.getItem('exambuilder_paper_size')||'A4',orientation:'portrait',marginTop:15,marginRight:15,marginBottom:15,marginLeft:15,numbering:'arabic',start:1};
+try{api.pageSettings={...defaultPageSettings,...JSON.parse(localStorage.getItem('examy_page_settings')||'{}')};}catch{api.pageSettings={...defaultPageSettings};}
+if(!['A4','A3','A5','Letter','Legal','Tabloid','Executive','B5'].includes(api.pageSettings.size))api.pageSettings.size=defaultPageSettings.size;
 api.refreshRulers=()=>sheets().forEach((sheet,index)=>{let ruler=$('.examy-ruler',sheet);if(!ruler){ruler=document.createElement('div');ruler.className='examy-ruler';ruler.setAttribute('aria-hidden','true');sheet.prepend(ruler)}ruler.innerHTML='';for(let i=0;i<=20;i++){const tick=document.createElement('i');tick.style.insetInlineStart=`${i*5}%`;tick.className=i%5===0?'major':'minor';if(i%5===0){const n=document.createElement('b');n.textContent=String(i/5);tick.append(n)}ruler.append(tick)}ruler.dataset.page=String(index+1)});
 api.refreshPageNumbers=()=>{
  const list=sheets(), total=list.length;
@@ -29,10 +31,10 @@ api.refreshPageNumbers=()=>{
  });
  const a=$('#pageTotalCount'),b=$('#footerPageCountBadge'); if(a)a.textContent=total;if(b)b.textContent=total;api.refreshRulers();
 };
-api.setPageSize=(size,orientation='portrait')=>{
+api.setPageSize=(size,orientation='portrait',recordHistory=true)=>{
  if(!['A4','A3','A5','Letter','Legal','Tabloid','Executive','B5'].includes(size))return false;
  if(!['portrait','landscape'].includes(orientation))orientation='portrait';
- undo(); api.pageSettings.size=size;api.pageSettings.orientation=orientation;
+ if(recordHistory)undo(); api.pageSettings.size=size;api.pageSettings.orientation=orientation;
  const dimensions={
   A3:orientation==='landscape'?[1587,1123]:[1123,1587],
   A4:orientation==='landscape'?[1123,794]:[794,1123],
@@ -47,13 +49,14 @@ api.setPageSize=(size,orientation='portrait')=>{
  document.documentElement.style.setProperty('--a4-w',`${dims[0]}px`);document.documentElement.style.setProperty('--a4-h',`${dims[1]}px`);
  try{let st=$('#examy-dynamic-page-rule');if(!st){st=document.createElement('style');st.id='examy-dynamic-page-rule';document.head.append(st)}st.textContent=`@page{size:${size} ${orientation};margin:0}`;}catch{}
  sheets().forEach(s=>{s.dataset.paper=size;s.dataset.orientation=orientation;}); api.refreshPageNumbers();
- try{localStorage.setItem('examy_page_settings',JSON.stringify(api.pageSettings));}catch{}
+ try{localStorage.setItem('examy_page_settings',JSON.stringify(api.pageSettings));localStorage.setItem('exambuilder_paper_size',size);if(typeof currentPaperSize!=='undefined')currentPaperSize=size;}catch{}
  return true;
 };
-api.setMargins=(top,right,bottom,left)=>{
+api.setMargins=(top,right,bottom,left,recordHistory=true)=>{
  const vals=[top,right,bottom,left].map(v=>Math.max(0,Math.min(50,Number(v)||0)));
- undo();api.pageSettings.marginTop=vals[0];api.pageSettings.marginRight=vals[1];api.pageSettings.marginBottom=vals[2];api.pageSettings.marginLeft=vals[3];
+ if(recordHistory)undo();api.pageSettings.marginTop=vals[0];api.pageSettings.marginRight=vals[1];api.pageSettings.marginBottom=vals[2];api.pageSettings.marginLeft=vals[3];
  sheets().forEach(s=>{const f=$('.sheet-frame-box',s);if(f)f.style.padding=vals.map(v=>`${v*96/25.4}px`).join(' ')});
+ try{localStorage.setItem('examy_page_settings',JSON.stringify(api.pageSettings));}catch{}
 };
 api.setHeaderFooter=(kind,text,{all=false,page=null}={})=>{
  if(!['header','footer'].includes(kind))return; undo();
@@ -207,7 +210,12 @@ function installPanel(){
  $('#euRestore',panel).addEventListener('change',async e=>{if(e.target.files[0])try{await api.restore(e.target.files[0])}catch(err){toast('تعذر استعادة الملف: '+err.message,'error')}e.target.value='';});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',installPanel,{once:true});else installPanel();
-window.addEventListener('load',()=>{api.refreshPageNumbers();});
+window.addEventListener('load',()=>{
+ const settings=api.pageSettings;
+ api.setPageSize(settings.size,settings.orientation,false);
+ api.setMargins(settings.marginTop,settings.marginRight,settings.marginBottom,settings.marginLeft,false);
+ api.refreshPageNumbers();
+});
 const observer=new MutationObserver(records=>{let changed=false;for(const r of records){const t=r.target.nodeType===1?r.target:r.target.parentElement;if(t?.closest('.questions-stream'))changed=true;if(t===root()&&[...r.addedNodes,...r.removedNodes].some(n=>n.nodeType===1&&(n.matches?.('.a4-sheet')||n.querySelector?.('.a4-sheet')))){api.refreshPageNumbers();changed=true;}}if(changed)api.scheduleFlow()});
 const start=()=>{if(root())observer.observe(root(),{childList:true,subtree:true});};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
