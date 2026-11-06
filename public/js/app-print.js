@@ -44,28 +44,35 @@ function handlePrinterChange(val) {
     populatePrinterPaperSizes(val);
 }
 
+function normalizePrinterPaperSize(value) {
+    const raw = String(value || '').trim().toLowerCase();
+    const aliases = [
+        ['A4', /(^|\\b)a4(\\b|$)/i], ['A3', /(^|\\b)a3(\\b|$)/i],
+        ['A5', /(^|\\b)a5(\\b|$)/i], ['Letter', /letter/i], ['Legal', /legal/i],
+        ['Tabloid', /tabloid|11\\s*[x×]\\s*17/i], ['Executive', /executive/i],
+        ['B5', /(^|\\b)b5(\\b|$)/i]
+    ];
+    return aliases.find(([, pattern]) => pattern.test(raw))?.[0] || null;
+}
+
 function populatePrinterPaperSizes(printerName) {
-    const prevSelect = document.getElementById("previewPaperSizeSelect");
-    const settSelect = document.getElementById("settingsPaperSizeSelect");
-    if (!prevSelect && !settSelect) return;
-
+    const selectors = ["ribbonPaperSizeSelect", "previewPaperSizeSelect", "settingsPaperSizeSelect", "examyPaperSize", "examyPreviewPaper"]
+        .map(id => document.getElementById(id)).filter(Boolean);
+    if (!selectors.length) return;
     const pr = systemPrintersList.find(p => p.name === printerName) || systemPrintersList[0];
-let papers = (pr && pr.papers && pr.papers.length > 0) ? pr.papers : ['A4', 'A3', 'Letter', 'Legal', 'Executive', 'B5'];
-
-    const fillOptions = (sel) => {
-        if (!sel) return;
-        sel.innerHTML = "";
-        papers.forEach(pap => {
-            const opt = document.createElement("option");
-            opt.value = pap;
-            opt.textContent = pap;
-            if (pap.toLowerCase() === currentPaperSize.toLowerCase()) opt.selected = true;
-            sel.appendChild(opt);
+    const driverPapers = pr && Array.isArray(pr.papers) ? pr.papers : [];
+    const supported = [...new Set(driverPapers.map(normalizePrinterPaperSize).filter(Boolean))];
+    const papers = supported.length ? supported : ['A4', 'A3', 'A5', 'Letter', 'Legal', 'Tabloid', 'Executive', 'B5'];
+    const wanted = papers.includes(currentPaperSize) ? currentPaperSize : (papers.includes('A4') ? 'A4' : papers[0]);
+    selectors.forEach(sel => {
+        sel.replaceChildren();
+        papers.forEach(paper => {
+            const option = document.createElement('option');
+            option.value = paper; option.textContent = paper; sel.appendChild(option);
         });
-    };
-
-    fillOptions(prevSelect);
-    fillOptions(settSelect);
+        sel.value = wanted; sel.disabled = false;
+    });
+    if (wanted !== currentPaperSize && typeof handlePaperSizeChange === 'function') handlePaperSizeChange(wanted);
 }
 
 async function openSelectedPrinterProps() {
@@ -232,50 +239,47 @@ function openPrintPreview() {
 }
 
 // تصدير PDF الاحترافي المباشر عبر Electron مع رسالة نجاح واضحة
-async function exportNativeVectorPDF() {
-    if (typeof SoundFX !== 'undefined') SoundFX.pop();
-    if (typeof UIEffects !== 'undefined') {
-        UIEffects.showToast("جاري تجهيز وتصدير ملف PDF عالي الدقة...", "info", 3000);
-    }
-
+async function exportExamDocumentPdf() {
+    const body = document.body;
+    const previousPreview = body.classList.contains('in-preview');
+    const orientation = window.ExamyUltimate?.pageSettings?.orientation || 'portrait';
+    const pageSize = currentPaperSize || window.ExamyUltimate?.pageSettings?.size || 'A4';
+    body.classList.add('examy-document-export');
+    body.classList.remove('in-preview');
     try {
-        if (window.examy) {
+        if (typeof window.flushExamAutoSave === 'function') window.flushExamAutoSave();
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        if (document.fonts?.ready) await document.fonts.ready;
+        if (window.examy && typeof window.examy.printToPdf === 'function') {
             const res = await window.examy.printToPdf({
-                pageSize: (typeof activePaperSize !== 'undefined') ? activePaperSize : 'A4'
+                pageSize, landscape: orientation === 'landscape',
+                printerName: localStorage.getItem('exambuilder_default_printer') || ''
             });
-
-            if (res && res.success) {
+            if (res?.success) {
                 if (typeof SoundFX !== 'undefined') SoundFX.success();
-                if (typeof UIEffects !== 'undefined') {
-                    UIEffects.showToast(`تم حفظ ملف PDF بنجاح في: ${res.filePath}`, "success", 4000);
-                }
-            } else if (!res.canceled) {
-                throw new Error(res.error || "تعذر حفظ الملف");
-            }
+                if (typeof UIEffects !== 'undefined') UIEffects.showToast('تم حفظ ورقة الاختبار فقط بصيغة PDF.', 'success', 3500);
+            } else if (!res?.canceled) throw new Error(res?.error || 'تعذر حفظ ملف PDF.');
         } else {
-            // خطة بديلة للمتصفح
-            window.print();
+            const restore = () => {
+                body.classList.remove('examy-document-export');
+                if (previousPreview) body.classList.add('in-preview');
+                window.removeEventListener('afterprint', restore);
+            };
+            window.addEventListener('afterprint', restore, { once: true });
+            window.print(); setTimeout(restore, 12000); return;
         }
-    } catch (e) {
-        console.error("خطأ تصدير PDF:", e);
-        if (typeof UIEffects !== 'undefined') {
-            UIEffects.showToast("حدث خطأ أثناء تصدير PDF، تأكد من إعطاء إذن الحفظ", "error");
-        }
+    } catch (error) {
+        console.error('PDF export failed:', error);
+        if (typeof UIEffects !== 'undefined') UIEffects.showToast('تعذر تصدير ورقة الاختبار: ' + error.message, 'error', 4500);
+        else alert('تعذر تصدير ورقة الاختبار: ' + error.message);
+    } finally {
+        body.classList.remove('examy-document-export');
+        if (previousPreview) body.classList.add('in-preview');
     }
 }
-
-async function exportDirectPDF() {
-       if (typeof SoundFX !== 'undefined') SoundFX.success();
-       if (window.examy) {
-           // استخدام محرك Electron الداخلي المتجهي (Vector PDF)
-           const res = await window.examy.printToPdf({
-               pageSize: currentPaperSize || 'A4',
-               landscape: isBookletMode || currentPaperSize === 'A3'
-           });
-           if (res && res.success && typeof UIEffects !== 'undefined') {
-               UIEffects.showToast("تم تصدير ملف PDF المتجهي بنجاح!", "success", 3500);
-           }
-       } else {
-           window.print();
-       }
-   }
+async function exportNativeVectorPDF() {
+    if (typeof SoundFX !== 'undefined') SoundFX.pop();
+    if (typeof UIEffects !== 'undefined') UIEffects.showToast('جاري تجهيز ورقة الاختبار فقط لتصدير PDF...', 'info', 2200);
+    await exportExamDocumentPdf();
+}
+async function exportDirectPDF() { await exportExamDocumentPdf(); }
