@@ -347,7 +347,7 @@ function openAIChatCompletion(apiKey, model, messages) {
 function requireLoopbackForAI(req, res, next) {
     const ip = String(req.socket.remoteAddress || '').replace(/^::ffff:/, '');
     const host = String(req.hostname || '').toLowerCase();
-    if (!['127.0.0.1', '::1', 'localhost'].includes(ip) || !['localhost', '127.0.0.1'].includes(host)) {
+    if (!['127.0.0.1', '::1', 'localhost'].includes(ip) || !['localhost', '127.0.0.1', '[::1]'].includes(host)) {
         return res.status(403).json({ error: 'إعدادات الذكاء الاصطناعي متاحة من الجهاز المحلي فقط.' });
     }
     next();
@@ -362,9 +362,14 @@ app.post('/api/ai/config', (req, res) => {
     const model = String(req.body?.model || 'gpt-4o-mini').trim().slice(0, 100);
     if (!key || key.length < 20 || key.length > 300) return res.status(400).json({ success: false, message: 'مفتاح API غير صالح أو فارغ.' });
     const aiConfigPath = path.join(DB_DIR, 'ai-config.json');
-    const aiTempPath = aiConfigPath + '.tmp';
-    fs.writeFileSync(aiTempPath, JSON.stringify({ apiKey: key, model, updatedAt: new Date().toISOString() }, null, 2), { encoding: 'utf8', mode: 0o600 });
-    fs.renameSync(aiTempPath, aiConfigPath);
+    const aiTempPath = aiConfigPath + '.' + process.pid + '.' + crypto.randomBytes(4).toString('hex') + '.tmp';
+    try {
+        fs.writeFileSync(aiTempPath, JSON.stringify({ apiKey: key, model, updatedAt: new Date().toISOString() }, null, 2), { encoding: 'utf8', flag: 'wx', mode: 0o600 });
+        fs.renameSync(aiTempPath, aiConfigPath);
+    } catch (error) {
+        try { if (fs.existsSync(aiTempPath)) fs.unlinkSync(aiTempPath); } catch (_) {}
+        throw error;
+    }
     res.json({ success: true, message: 'تم حفظ مفتاح API محلياً.' });
 });
 app.post('/api/ai/generate', async (req, res) => {
