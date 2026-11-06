@@ -169,3 +169,33 @@
   table, tr, .question-container, img { break-inside:avoid-page; page-break-inside:avoid; }
   thead { display:table-header-group; } tfoot { display:table-footer-group; }
 }
+
+
+/* Strict document-only PDF mode: export examination sheets, not application controls. */
+@media print {
+  body.examy-document-export > *:not(#appStage) { display:none !important; }
+  body.examy-document-export #appStage { display:block !important; position:static !important; width:100% !important; height:auto !important; min-height:0 !important; margin:0 !important; padding:0 !important; background:#fff !important; }
+  body.examy-document-export #appStage > *:not(#sheetsWrapper) { display:none !important; }
+  body.examy-document-export #sheetsWrapper { display:block !important; position:static !important; width:100% !important; height:auto !important; margin:0 !important; padding:0 !important; gap:0 !important; transform:none !important; background:#fff !important; }
+  body.examy-document-export #sheetsWrapper .a4-sheet { display:block !important; position:relative !important; width:100% !important; max-width:none !important; min-height:0 !important; height:auto !important; max-height:none !important; margin:0 !important; box-shadow:none !important; break-after:page !important; page-break-after:always !important; }
+  body.examy-document-export #sheetsWrapper .a4-sheet:last-child { break-after:auto !important; page-break-after:auto !important; }
+  body.examy-document-export #sheetsWrapper button,
+  body.examy-document-export #sheetsWrapper input,
+  body.examy-document-export #sheetsWrapper select,
+  body.examy-document-export #sheetsWrapper textarea,
+  body.examy-document-export #sheetsWrapper .examy-ruler,
+  body.examy-document-export #sheetsWrapper .page-break-indicator,
+  body.examy-document-export #sheetsWrapper .hdr-action-bar,
+  body.examy-document-export #sheetsWrapper .del-note-btn,
+  body.examy-document-export #sheetsWrapper .drag-move-handle,
+  body.examy-document-export #sheetsWrapper .img-controls,
+  body.examy-document-export #sheetsWrapper .img-resize-handle,
+  body.examy-document-export #sheetsWrapper .table-drag-handle,
+  body.examy-document-export #sheetsWrapper .table-resize-handle,
+  body.examy-document-export #sheetsWrapper .table-quick-toolbar,
+  body.examy-document-export #sheetsWrapper .branch-del-btn,
+  body.examy-document-export #sheetsWrapper .add-branch-inline-btn,
+  body.examy-document-export #sheetsWrapper .sheet-restore-header-bar { display:none !important; }
+  body.examy-document-export #sheetsWrapper [contenteditable="true"] { outline:none !important; caret-color:transparent !important; }
+  body.examy-document-export #sheetsWrapper .sheet-frame-box { box-shadow:none !important; }
+}
