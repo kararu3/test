@@ -112,11 +112,24 @@ function createWindow() {
     );
     ses.setPermissionRequestHandler((webContents, permission, callback, details) => {
         const origin = details?.requestingUrl || webContents?.getURL() || '';
+        const mediaTypes = Array.isArray(details?.mediaTypes) ? details.mediaTypes : [];
+        const audioOnly = !mediaTypes.length || (mediaTypes.includes('audio') && !mediaTypes.includes('video'));
         callback(
             webContents === mainWindow?.webContents &&
             permission === 'media' &&
-            isTrustedAppOrigin(origin)
+            isTrustedAppOrigin(origin) &&
+            audioOnly
         );
+    });
+
+    mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
+        let isAppFile = false;
+        try {
+            const target = new URL(navigationUrl);
+            isAppFile = target.protocol === 'file:' &&
+                path.resolve(decodeURIComponent(target.pathname)) === path.resolve(path.join(__dirname, 'public', 'index.html'));
+        } catch (_) {}
+        if (!isAppFile) event.preventDefault();
     });
 
     mainWindow.webContents.on('did-finish-load', () => {
