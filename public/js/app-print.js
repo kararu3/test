@@ -47,10 +47,10 @@ function handlePrinterChange(val) {
 function normalizePrinterPaperSize(value) {
     const raw = String(value || '').trim().toLowerCase();
     const aliases = [
-        ['A4', /(^|\\b)a4(\\b|$)/i], ['A3', /(^|\\b)a3(\\b|$)/i],
-        ['A5', /(^|\\b)a5(\\b|$)/i], ['Letter', /letter/i], ['Legal', /legal/i],
-        ['Tabloid', /tabloid|11\\s*[x×]\\s*17/i], ['Executive', /executive/i],
-        ['B5', /(^|\\b)b5(\\b|$)/i]
+        ['A4', /(^|\b)a4(\b|$)/i], ['A3', /(^|\b)a3(\b|$)/i],
+        ['A5', /(^|\b)a5(\b|$)/i], ['Letter', /letter/i], ['Legal', /legal/i],
+        ['Tabloid', /tabloid|11\s*[x×]\s*17/i], ['Executive', /executive/i],
+        ['B5', /(^|\b)b5(\b|$)/i]
     ];
     return aliases.find(([, pattern]) => pattern.test(raw))?.[0] || null;
 }
