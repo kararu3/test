@@ -65,7 +65,7 @@ if (!controlCss.includes('user-select:text!important')) fail('Numeric/form contr
 if (!controlJs.includes('ExamyControlAudit')) fail('Control audit diagnostic missing');
 
 const ultimate = fs.readFileSync(path.join(root, 'public/js/ultimate-engine.js'), 'utf8');
-for (const token of ['sanitizeHTML', 'setTimeout(()=>URL.revokeObjectURL(url),30000)', 'api.openEquationEditor();']) {
+for (const token of ['sanitizeHTML', 'setTimeout(()=>URL.revokeObjectURL(url),30000)', 'api.openEquationEditor();', 'api.setPageSize(settings.size,settings.orientation,false)', 'تعذر حفظ سجل المراجعات المحلي']) {
   if (!ultimate.includes(token)) fail('Missing backup/import/equation safeguard: ' + token);
 }
 if (!app.includes('window.ExamyUltimate.setPageSize(val, orientation)')) fail('Paper-size selector must update actual page geometry');
